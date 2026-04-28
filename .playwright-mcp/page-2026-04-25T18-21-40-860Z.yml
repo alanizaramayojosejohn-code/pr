@@ -1,0 +1,87 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - generic [ref=e6]: PR
+      - link "J A" [ref=e7] [cursor=pointer]:
+        - /url: "#/cuenta"
+        - generic [ref=e8]: J
+        - generic "admin" [ref=e9]: A
+    - main [ref=e10]:
+      - generic [ref=e290]:
+        - generic [ref=e291]:
+          - button "Cancelar sesión" [ref=e292] [cursor=pointer]:
+            - img [ref=e293]
+          - generic [ref=e295]:
+            - heading "Pecho y triceps" [level=1] [ref=e301]
+            - paragraph [ref=e297]: 00:03 · 1 de 2 ejercicios
+          - button "Finalizar" [ref=e298] [cursor=pointer]
+        - article [ref=e302]:
+          - generic [ref=e303]:
+            - generic [ref=e305]:
+              - heading "Around The Worlds" [level=2] [ref=e306]
+              - paragraph [ref=e307]:
+                - text: Ejercicio 1 de 2 · descanso
+                - spinbutton [ref=e308]: "90"
+                - text: s
+            - button "×" [ref=e309] [cursor=pointer]
+          - generic [ref=e310]:
+            - generic [ref=e311]:
+              - generic [ref=e312]: "1"
+              - generic [ref=e313]: 80 × 8
+              - spinbutton [ref=e314]: "80"
+              - spinbutton [ref=e315]: "8"
+              - button "Completar serie" [ref=e316] [cursor=pointer]:
+                - img [ref=e317]
+              - button "×" [ref=e319] [cursor=pointer]
+            - generic [ref=e320]:
+              - generic [ref=e321]: "2"
+              - generic [ref=e322]: 82.5 × 7
+              - spinbutton [ref=e323]: "82.5"
+              - spinbutton [ref=e324]: "7"
+              - button "Completar serie" [ref=e325] [cursor=pointer]:
+                - img [ref=e326]
+              - button "×" [ref=e328] [cursor=pointer]
+            - generic [ref=e329]:
+              - generic [ref=e330]: "3"
+              - generic [ref=e331]: 85 × 6
+              - spinbutton [ref=e332]: "85"
+              - spinbutton [ref=e333]: "6"
+              - button "Completar serie" [ref=e334] [cursor=pointer]:
+                - img [ref=e335]
+              - button "×" [ref=e337] [cursor=pointer]
+            - button "+ Añadir serie" [ref=e338] [cursor=pointer]
+        - button "SIGUIENTE Alternating Floor Press · 3 × 10" [ref=e339] [cursor=pointer]:
+          - img [ref=e341]
+          - generic [ref=e343]:
+            - paragraph [ref=e344]: SIGUIENTE
+            - paragraph [ref=e345]: Alternating Floor Press · 3 × 10
+          - img [ref=e346]
+        - group [ref=e299]:
+          - generic "+ Añadir ejercicio" [ref=e300] [cursor=pointer]
+    - navigation:
+      - generic [ref=e68]:
+        - link "HOY" [ref=e69] [cursor=pointer]:
+          - /url: "#/dashboard"
+          - img [ref=e70]
+          - generic [ref=e72]: HOY
+        - link "RUTINAS" [ref=e73] [cursor=pointer]:
+          - /url: "#/rutinas"
+          - img [ref=e74]
+          - generic [ref=e77]: RUTINAS
+        - link "MEDIDAS" [ref=e78] [cursor=pointer]:
+          - /url: "#/medidas"
+          - img [ref=e79]
+          - generic [ref=e82]: MEDIDAS
+        - link "PROGRESO" [ref=e83] [cursor=pointer]:
+          - /url: "#/progreso"
+          - img [ref=e84]
+          - generic [ref=e87]: PROGRESO
+        - link "HISTORIAL" [ref=e88] [cursor=pointer]:
+          - /url: "#/historial"
+          - img [ref=e89]
+          - generic [ref=e93]: HISTORIAL
+  - generic [ref=e94]:
+    - generic "Toggle devtools panel" [ref=e95] [cursor=pointer]:
+      - img [ref=e96]
+    - generic "Toggle Component Inspector" [ref=e101] [cursor=pointer]:
+      - img [ref=e102]

@@ -1,0 +1,63 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - generic [ref=e6]: PR
+      - link "J A" [ref=e7] [cursor=pointer]:
+        - /url: "#/cuenta"
+        - generic [ref=e8]: J
+        - generic "admin" [ref=e9]: A
+    - main [ref=e10]:
+      - generic [ref=e350]:
+        - generic [ref=e351]:
+          - button "Cancelar sesión" [ref=e352] [cursor=pointer]:
+            - img [ref=e353]
+          - generic [ref=e355]:
+            - heading "Pecho y triceps" [level=1] [ref=e356]
+            - paragraph [ref=e357]: 00:00 · 1 de 2 ejercicios
+          - button "Finalizar" [ref=e358] [cursor=pointer]
+        - article [ref=e359]:
+          - generic [ref=e360]:
+            - img [ref=e362]
+            - generic [ref=e364]:
+              - heading "—" [level=2] [ref=e365]
+              - paragraph [ref=e366]:
+                - text: Ejercicio 1 de 2 · descanso
+                - spinbutton [ref=e367]: "90"
+                - text: s
+            - button "×" [ref=e368] [cursor=pointer]
+          - button "+ Añadir serie" [ref=e370] [cursor=pointer]
+        - button "SIGUIENTE — · 3 × 10" [ref=e371] [cursor=pointer]:
+          - img [ref=e373]
+          - generic [ref=e375]:
+            - paragraph [ref=e376]: SIGUIENTE
+            - paragraph [ref=e377]: — · 3 × 10
+          - img [ref=e378]
+        - group [ref=e380]:
+          - generic "+ Añadir ejercicio" [ref=e381] [cursor=pointer]
+    - navigation:
+      - generic [ref=e68]:
+        - link "HOY" [ref=e69] [cursor=pointer]:
+          - /url: "#/dashboard"
+          - img [ref=e70]
+          - generic [ref=e72]: HOY
+        - link "RUTINAS" [ref=e73] [cursor=pointer]:
+          - /url: "#/rutinas"
+          - img [ref=e74]
+          - generic [ref=e77]: RUTINAS
+        - link "MEDIDAS" [ref=e78] [cursor=pointer]:
+          - /url: "#/medidas"
+          - img [ref=e79]
+          - generic [ref=e82]: MEDIDAS
+        - link "PROGRESO" [ref=e83] [cursor=pointer]:
+          - /url: "#/progreso"
+          - img [ref=e84]
+          - generic [ref=e87]: PROGRESO
+        - link "HISTORIAL" [ref=e88] [cursor=pointer]:
+          - /url: "#/historial"
+          - img [ref=e89]
+          - generic [ref=e93]: HISTORIAL
+  - generic [ref=e94]:
+    - generic "Toggle devtools panel" [ref=e95] [cursor=pointer]:
+      - img [ref=e96]
+    - generic "Toggle Component Inspector" [ref=e101] [cursor=pointer]:
+      - img [ref=e102]

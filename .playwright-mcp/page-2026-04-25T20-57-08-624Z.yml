@@ -1,0 +1,83 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e620]:
+      - generic [ref=e623]: PR
+      - link "A" [ref=e624] [cursor=pointer]:
+        - /url: "#/cuenta"
+        - generic [ref=e625]: A
+    - main [ref=e23]:
+      - generic [ref=e549]:
+        - generic [ref=e550]:
+          - button "Volver" [ref=e551] [cursor=pointer]:
+            - img [ref=e552]
+          - generic [ref=e554]:
+            - heading "Categorías" [level=1] [ref=e555]
+            - paragraph [ref=e556]: Elige un grupo muscular
+        - generic [ref=e559]:
+          - button "Pecho 67 ejercicios" [ref=e560] [cursor=pointer]:
+            - img [ref=e562]
+            - generic [ref=e564]: Pecho
+            - generic [ref=e565]: 67 ejercicios
+          - button "Espalda 72 ejercicios" [ref=e566] [cursor=pointer]:
+            - img [ref=e568]
+            - generic [ref=e570]: Espalda
+            - generic [ref=e571]: 72 ejercicios
+          - button "Hombro 88 ejercicios" [ref=e572] [cursor=pointer]:
+            - img [ref=e574]
+            - generic [ref=e576]: Hombro
+            - generic [ref=e577]: 88 ejercicios
+          - button "Brazo 105 ejercicios" [ref=e578] [cursor=pointer]:
+            - img [ref=e580]
+            - generic [ref=e582]: Brazo
+            - generic [ref=e583]: 105 ejercicios
+          - button "Core 70 ejercicios" [ref=e584] [cursor=pointer]:
+            - img [ref=e586]
+            - generic [ref=e588]: Core
+            - generic [ref=e589]: 70 ejercicios
+          - button "Cuádriceps 82 ejercicios" [ref=e590] [cursor=pointer]:
+            - img [ref=e592]
+            - generic [ref=e594]: Cuádriceps
+            - generic [ref=e595]: 82 ejercicios
+          - button "Isquios 48 ejercicios" [ref=e596] [cursor=pointer]:
+            - img [ref=e598]
+            - generic [ref=e600]: Isquios
+            - generic [ref=e601]: 48 ejercicios
+          - button "Glúteos 14 ejercicios" [ref=e602] [cursor=pointer]:
+            - img [ref=e604]
+            - generic [ref=e606]: Glúteos
+            - generic [ref=e607]: 14 ejercicios
+          - button "Pantorrilla 15 ejercicios" [ref=e608] [cursor=pointer]:
+            - img [ref=e610]
+            - generic [ref=e612]: Pantorrilla
+            - generic [ref=e613]: 15 ejercicios
+          - button "Aductores 7 ejercicios" [ref=e614] [cursor=pointer]:
+            - img [ref=e616]
+            - generic [ref=e618]: Aductores
+            - generic [ref=e619]: 7 ejercicios
+    - navigation:
+      - generic [ref=e626]:
+        - link "HOY" [ref=e627] [cursor=pointer]:
+          - /url: "#/dashboard"
+          - img [ref=e628]
+          - generic [ref=e630]: HOY
+        - link "RUTINAS" [ref=e631] [cursor=pointer]:
+          - /url: "#/rutinas"
+          - img [ref=e632]
+          - generic [ref=e635]: RUTINAS
+        - link "MEDIDAS" [ref=e636] [cursor=pointer]:
+          - /url: "#/medidas"
+          - img [ref=e637]
+          - generic [ref=e640]: MEDIDAS
+        - link "PROGRESO" [ref=e641] [cursor=pointer]:
+          - /url: "#/progreso"
+          - img [ref=e642]
+          - generic [ref=e645]: PROGRESO
+        - link "HISTORIAL" [ref=e646] [cursor=pointer]:
+          - /url: "#/historial"
+          - img [ref=e647]
+          - generic [ref=e651]: HISTORIAL
+  - generic [ref=e4]:
+    - generic "Toggle devtools panel" [ref=e5] [cursor=pointer]:
+      - img [ref=e6]
+    - generic "Toggle Component Inspector" [ref=e11] [cursor=pointer]:
+      - img [ref=e12]

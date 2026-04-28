@@ -1,0 +1,53 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e16]:
+      - generic [ref=e19]: PR
+      - link "A" [ref=e20] [cursor=pointer]:
+        - /url: "#/cuenta"
+        - generic [ref=e21]: A
+    - main [ref=e22]:
+      - generic [ref=e196]:
+        - generic [ref=e197]:
+          - button "Volver" [ref=e198] [cursor=pointer]:
+            - img [ref=e199]
+          - generic [ref=e201]:
+            - heading "Nutrición" [level=1] [ref=e202]
+            - paragraph [ref=e203]: Qué y cuándo comer para tu objetivo
+        - link "¿ ¿Cuánta proteína necesitás por día? El número justo según tu peso y objetivo, sin mitos ni suplementos innecesarios. 25 de abril de 2026 · 2 min" [ref=e205] [cursor=pointer]:
+          - /url: "#/aprender/cuanta-proteina-por-dia"
+          - generic [ref=e207]: ¿
+          - generic [ref=e208]:
+            - heading "¿Cuánta proteína necesitás por día?" [level=2] [ref=e209]
+            - paragraph [ref=e210]: El número justo según tu peso y objetivo, sin mitos ni suplementos innecesarios.
+            - paragraph [ref=e211]: 25 de abril de 2026 · 2 min
+    - navigation:
+      - generic [ref=e73]:
+        - link "HOY" [ref=e74] [cursor=pointer]:
+          - /url: "#/dashboard"
+          - img [ref=e75]
+          - generic [ref=e77]: HOY
+        - link "RUTINAS" [ref=e78] [cursor=pointer]:
+          - /url: "#/rutinas"
+          - img [ref=e79]
+          - generic [ref=e82]: RUTINAS
+        - link "APRENDER" [ref=e83] [cursor=pointer]:
+          - /url: "#/aprender"
+          - img [ref=e84]
+          - generic [ref=e87]: APRENDER
+        - link "MEDIDAS" [ref=e88] [cursor=pointer]:
+          - /url: "#/medidas"
+          - img [ref=e89]
+          - generic [ref=e92]: MEDIDAS
+        - link "PROGRESO" [ref=e93] [cursor=pointer]:
+          - /url: "#/progreso"
+          - img [ref=e94]
+          - generic [ref=e97]: PROGRESO
+        - link "HISTORIAL" [ref=e98] [cursor=pointer]:
+          - /url: "#/historial"
+          - img [ref=e99]
+          - generic [ref=e103]: HISTORIAL
+  - generic [ref=e4]:
+    - generic "Toggle devtools panel" [ref=e5] [cursor=pointer]:
+      - img [ref=e6]
+    - generic "Toggle Component Inspector" [ref=e11] [cursor=pointer]:
+      - img [ref=e12]

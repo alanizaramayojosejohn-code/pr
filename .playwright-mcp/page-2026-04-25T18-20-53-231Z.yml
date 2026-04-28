@@ -1,0 +1,98 @@
+- generic [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - generic [ref=e6]: PR
+      - link "J A" [ref=e7] [cursor=pointer]:
+        - /url: "#/cuenta"
+        - generic [ref=e8]: J
+        - generic "admin" [ref=e9]: A
+    - main [ref=e10]:
+      - generic [ref=e157]:
+        - generic [ref=e158]:
+          - button "Cancelar sesión" [ref=e159] [cursor=pointer]:
+            - img [ref=e160]
+          - generic [ref=e162]:
+            - heading "Pecho y triceps" [level=1] [ref=e163]
+            - paragraph [ref=e164]: 05:42 · 2 de 2 ejercicios
+          - button "Finalizar" [ref=e165] [cursor=pointer]
+        - generic [ref=e217]:
+          - generic [ref=e218]: Descanso
+          - generic [ref=e219]: 01:28
+          - generic [ref=e220]:
+            - button "−15" [ref=e221] [cursor=pointer]
+            - button "+15" [ref=e222] [cursor=pointer]
+            - button "×" [ref=e223] [cursor=pointer]
+        - button "ANTERIOR Around The Worlds · 3 × 10" [ref=e166] [cursor=pointer]:
+          - img [ref=e168]
+          - generic [ref=e170]:
+            - paragraph [ref=e171]: ANTERIOR
+            - paragraph [ref=e172]: Around The Worlds · 3 × 10
+          - img [ref=e173]
+        - article [ref=e175]:
+          - generic [ref=e176]:
+            - generic [ref=e178]:
+              - heading "Alternating Floor Press" [level=2] [ref=e179]
+              - paragraph [ref=e180]:
+                - text: Ejercicio 2 de 2 · descanso
+                - spinbutton [ref=e181]: "90"
+                - text: s
+            - button "×" [ref=e182] [cursor=pointer]
+          - generic [ref=e183]:
+            - generic [ref=e184]:
+              - generic [ref=e185]: "1"
+              - generic [ref=e186]: —
+              - spinbutton [ref=e187]: "40"
+              - spinbutton [ref=e188]: "12"
+              - button "Iniciar descanso" [ref=e224] [cursor=pointer]:
+                - img [ref=e190]
+              - button "×" [ref=e192] [cursor=pointer]
+            - generic [ref=e193]:
+              - generic [ref=e194]: "2"
+              - generic [ref=e195]: —
+              - spinbutton [ref=e196]: "40"
+              - spinbutton [ref=e197]: "10"
+              - button "Iniciar descanso" [ref=e225] [cursor=pointer]:
+                - img [ref=e199]
+              - button "×" [ref=e201] [cursor=pointer]
+            - generic [ref=e202]:
+              - generic [ref=e203]: "3"
+              - generic [ref=e204]: —
+              - spinbutton [ref=e205]: "42.5"
+              - spinbutton [ref=e206]: "8"
+              - button "Iniciar descanso" [active] [ref=e226] [cursor=pointer]:
+                - img [ref=e208]
+              - button "×" [ref=e210] [cursor=pointer]
+            - button "+ Añadir serie" [ref=e211] [cursor=pointer]
+        - generic [ref=e227]:
+          - text: 🎉 ¡Todos los ejercicios completados! Toca
+          - strong [ref=e228]: Finalizar
+          - text: para guardar la sesión.
+        - group [ref=e212]:
+          - generic "+ Añadir ejercicio" [ref=e213] [cursor=pointer]
+    - navigation:
+      - generic [ref=e68]:
+        - link "HOY" [ref=e69] [cursor=pointer]:
+          - /url: "#/dashboard"
+          - img [ref=e70]
+          - generic [ref=e72]: HOY
+        - link "RUTINAS" [ref=e73] [cursor=pointer]:
+          - /url: "#/rutinas"
+          - img [ref=e74]
+          - generic [ref=e77]: RUTINAS
+        - link "MEDIDAS" [ref=e78] [cursor=pointer]:
+          - /url: "#/medidas"
+          - img [ref=e79]
+          - generic [ref=e82]: MEDIDAS
+        - link "PROGRESO" [ref=e83] [cursor=pointer]:
+          - /url: "#/progreso"
+          - img [ref=e84]
+          - generic [ref=e87]: PROGRESO
+        - link "HISTORIAL" [ref=e88] [cursor=pointer]:
+          - /url: "#/historial"
+          - img [ref=e89]
+          - generic [ref=e93]: HISTORIAL
+  - generic [ref=e94]:
+    - generic "Toggle devtools panel" [ref=e95] [cursor=pointer]:
+      - img [ref=e96]
+    - generic "Toggle Component Inspector" [ref=e101] [cursor=pointer]:
+      - img [ref=e102]

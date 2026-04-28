@@ -1,0 +1,41 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__supabase__list_tables",
+      "mcp__supabase__apply_migration",
+      "mcp__supabase__execute_sql",
+      "Bash(npm run *)",
+      "mcp__supabase__deploy_edge_function",
+      "Bash(npx vue-tsc *)",
+      "Bash(curl -s \"https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/dist/exercises.json\")",
+      "Bash(curl -s https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/dist/exercises.json)",
+      "Bash(node *)",
+      "Bash(curl -s https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/dist/exercises.json -o tmp/exercises.json)",
+      "Bash(kill %1)",
+      "Bash(exit 0)",
+      "mcp__supabase__get_project_url",
+      "Bash(npm install *)",
+      "Bash(npm ls *)",
+      "Bash(npx pwa-assets-generator *)",
+      "mcp__playwright__browser_resize",
+      "mcp__playwright__browser_navigate",
+      "mcp__playwright__browser_close",
+      "mcp__playwright__browser_console_messages",
+      "mcp__playwright__browser_take_screenshot",
+      "mcp__playwright__browser_snapshot",
+      "mcp__playwright__browser_evaluate",
+      "mcp__playwright__browser_fill_form",
+      "mcp__playwright__browser_click",
+      "mcp__playwright__browser_wait_for",
+      "mcp__playwright__browser_type",
+      "mcp__playwright__browser_press_key",
+      "mcp__playwright__browser_handle_dialog",
+      "Bash(curl -s -o /dev/null -w '%{http_code}' -H 'apikey: sb_publishable_8N7xRDGcTHzRrYRPz4MnGg_TQkR1xBc' -H 'Authorization: Bearer sb_publishable_8N7xRDGcTHzRrYRPz4MnGg_TQkR1xBc' 'https://zpexmkwbmnczeoikbnao.supabase.co/rest/v1/__TRACKED_VAR__?select=*&limit=0')",
+      "Bash(taskkill //F //IM chrome.exe)",
+      "Bash(curl -s \"http://localhost:5174/src/ui/admin/pages/MyMeasurements.vue\" -o /tmp/transform.txt -w \"HTTP %{http_code}\\\\n\")",
+      "Bash(echo \"EXIT=$?\")",
+      "Bash(npx vite *)",
+      "Bash(pkill -f \"vite --port 5173\")"
+    ]
+  }
+}

@@ -1,0 +1,154 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e16]:
+      - generic [ref=e19]: PR
+      - link "A" [ref=e20] [cursor=pointer]:
+        - /url: "#/cuenta"
+        - generic [ref=e21]: A
+    - main [ref=e22]:
+      - article [ref=e104]:
+        - generic [ref=e105]:
+          - button "Volver" [ref=e106] [cursor=pointer]:
+            - img [ref=e107]
+          - link "Mindset" [ref=e109] [cursor=pointer]:
+            - /url: "#/aprender/categoria/mindset"
+        - generic [ref=e111]: C
+        - generic [ref=e112]:
+          - 'heading "Constancia: por qué le gana siempre a la motivación" [level=1] [ref=e113]'
+          - paragraph [ref=e114]: 27 de abril de 2026 · 3 min de lectura
+        - generic [ref=e115]:
+          - paragraph [ref=e116]:
+            - text: Casi todos arrancan a entrenar con motivación al palo. Y casi todos abandonan dentro de los primeros 3 meses. ¿Por qué? Porque la motivación es
+            - strong [ref=e117]: emocional
+            - text: "y, como toda emoción, se agota. Lo que sostiene el progreso a largo plazo es algo mucho más aburrido pero más poderoso:"
+            - strong [ref=e118]: el hábito
+            - text: .
+          - heading "La motivación es un combustible malo" [level=2] [ref=e119]
+          - paragraph [ref=e120]: "La motivación funciona así:"
+          - list [ref=e121]:
+            - listitem [ref=e122]: "Día 1: viste un video en Instagram, comprás zapatillas, vas con todo."
+            - listitem [ref=e123]: "Semana 2: ya entrenaste 4 veces, te sentís imparable."
+            - listitem [ref=e124]: "Semana 4: llovió, estás cansado, “mañana voy seguro”."
+            - listitem [ref=e125]: "Semana 6: hace 10 días que no vas. Te sentís culpable. Abandonás."
+          - paragraph [ref=e126]:
+            - text: "Esperar tener ganas para entrenar es como esperar tener ganas para lavarse los dientes: a veces sí, a veces no."
+            - strong [ref=e127]: Lo hacés igual
+            - text: porque es parte de tu rutina.
+          - heading "El hábito reemplaza la decisión" [level=2] [ref=e128]
+          - paragraph [ref=e129]:
+            - text: Cada vez que tenés que
+            - strong [ref=e130]: decidir
+            - text: si vas al gimnasio, gastás energía mental. Si la respuesta depende de cómo te sentís, casi siempre vas a perder.
+          - paragraph [ref=e131]: "Pero si entrenás:"
+          - list [ref=e132]:
+            - listitem [ref=e133]:
+              - strong [ref=e134]: Lunes, miércoles y viernes a las 18hs
+              - text: ", sin excepciones,"
+          - paragraph [ref=e135]:
+            - text: …la decisión desaparece.
+            - strong [ref=e136]: No es “¿voy hoy?”
+            - text: sino “¿qué hago para llegar a las 18 al gimnasio?”. Es una pregunta logística, no emocional.
+          - heading "Cómo construir el hábito" [level=2] [ref=e137]
+          - 'heading "Regla 1: Empezá ridículamente chico" [level=3] [ref=e138]':
+            - text: "Regla 1:"
+            - strong [ref=e139]: Empezá ridículamente chico
+          - paragraph [ref=e140]:
+            - text: Si nunca entrenaste, no arranques con 4 días por semana de 90 minutos. Empezá con
+            - strong [ref=e141]: 2 días de 30 minutos
+            - text: . Cuando esos 2 días sean automáticos (4-6 semanas), agregás un tercero.
+          - paragraph [ref=e142]: Mejor 2 sesiones consistentes durante 6 meses que 5 sesiones intensas durante 6 semanas.
+          - 'heading "Regla 2: Anclá el hábito a algo que ya hacés" [level=3] [ref=e143]':
+            - text: "Regla 2:"
+            - strong [ref=e144]: Anclá el hábito a algo que ya hacés
+          - paragraph [ref=e145]: "Ejemplos:"
+          - list [ref=e146]:
+            - listitem [ref=e147]: “Después de salir del trabajo voy directo al gym (no paso por casa).”
+            - listitem [ref=e148]: “Los lunes, miércoles y viernes desayuno → trabajo → gym → casa.”
+            - listitem [ref=e149]: “Dejo la mochila preparada al lado de la puerta la noche anterior.”
+          - paragraph [ref=e150]:
+            - text: El hábito necesita un
+            - strong [ref=e151]: disparador físico
+            - text: que le diga al cerebro “ahora toca esto”.
+          - 'heading "Regla 3: Hacé la barrera de entrada lo más baja posible" [level=3] [ref=e152]':
+            - text: "Regla 3:"
+            - strong [ref=e153]: Hacé la barrera de entrada lo más baja posible
+          - list [ref=e154]:
+            - listitem [ref=e155]: Mochila preparada la noche anterior.
+            - listitem [ref=e156]: Ropa de gimnasio puesta antes de tomar la decisión.
+            - listitem [ref=e157]: "Gimnasio cerca de casa o trabajo (no negociable: si está a 40 minutos, no vas a ir)."
+          - paragraph [ref=e158]: Cada minuto de fricción extra es una excusa que tu cerebro va a usar.
+          - 'heading "Regla 4: Nunca dos seguidos" [level=3] [ref=e159]':
+            - text: "Regla 4:"
+            - strong [ref=e160]: Nunca dos seguidos
+          - paragraph [ref=e161]:
+            - text: Si fallás un día,
+            - strong [ref=e162]: no falles dos
+            - text: . Una semana mala no destruye nada. Dos semanas malas, sí.
+          - heading "La regla de los 2 minutos" [level=2] [ref=e163]
+          - paragraph [ref=e164]: "Si un día estás muerto y no querés ir, decite a vos mismo:"
+          - blockquote [ref=e165]:
+            - paragraph [ref=e166]: “Voy a ir al gym, hago 2 minutos y si quiero me vuelvo.”
+          - paragraph [ref=e167]:
+            - text: El 90% de las veces, cuando llegás y empezás, terminás haciendo la sesión completa. Y el 10% que te volvés a casa después de 2 minutos,
+            - strong [ref=e168]: mantuviste el hábito vivo
+            - text: ", que es lo único que importa."
+          - heading "Lo que NO funciona" [level=2] [ref=e169]
+          - table [ref=e170]:
+            - rowgroup [ref=e171]:
+              - row "Estrategia Por qué falla" [ref=e172]:
+                - columnheader "Estrategia" [ref=e173]
+                - columnheader "Por qué falla" [ref=e174]
+            - rowgroup [ref=e175]:
+              - row "Tatuarte una frase motivacional La motivación se agota igual" [ref=e176]:
+                - cell "Tatuarte una frase motivacional" [ref=e177]
+                - cell "La motivación se agota igual" [ref=e178]
+              - row "Comprar suplementos caros para “comprometerte” El compromiso viene del hábito, no de la plata gastada" [ref=e179]:
+                - cell "Comprar suplementos caros para “comprometerte”" [ref=e180]
+                - cell "El compromiso viene del hábito, no de la plata gastada" [ref=e181]
+              - row "Plantearte “voy a ser otra persona en 3 meses” El cerebro rechaza cambios grandes" [ref=e182]:
+                - cell "Plantearte “voy a ser otra persona en 3 meses”" [ref=e183]
+                - cell "El cerebro rechaza cambios grandes" [ref=e184]
+              - row "Buscar un programa “perfecto” Cualquier programa hecho con consistencia gana al “perfecto” hecho a veces" [ref=e185]:
+                - cell "Buscar un programa “perfecto”" [ref=e186]
+                - cell "Cualquier programa hecho con consistencia gana al “perfecto” hecho a veces" [ref=e187]
+          - heading "El verdadero progreso" [level=2] [ref=e188]
+          - paragraph [ref=e189]:
+            - text: A los 3 meses notás resultados visibles. A los 6 meses tu cuerpo cambió. Al año, sos otra persona — pero porque hiciste
+            - strong [ref=e190]: 300 veces lo mismo
+            - text: ", no porque tuviste motivación una vez."
+          - paragraph [ref=e191]: El gimnasio premia al que aparece. Punto.
+          - separator [ref=e192]
+          - paragraph [ref=e193]: "Esta app te ayuda con la parte logística (registrar lo que hacés). El resto depende de vos: aparecé los días que dijiste que ibas a aparecer."
+        - link "← Más artículos" [ref=e195] [cursor=pointer]:
+          - /url: "#/aprender"
+    - navigation:
+      - generic [ref=e73]:
+        - link "HOY" [ref=e74] [cursor=pointer]:
+          - /url: "#/dashboard"
+          - img [ref=e75]
+          - generic [ref=e77]: HOY
+        - link "RUTINAS" [ref=e78] [cursor=pointer]:
+          - /url: "#/rutinas"
+          - img [ref=e79]
+          - generic [ref=e82]: RUTINAS
+        - link "APRENDER" [ref=e83] [cursor=pointer]:
+          - /url: "#/aprender"
+          - img [ref=e84]
+          - generic [ref=e87]: APRENDER
+        - link "MEDIDAS" [ref=e88] [cursor=pointer]:
+          - /url: "#/medidas"
+          - img [ref=e89]
+          - generic [ref=e92]: MEDIDAS
+        - link "PROGRESO" [ref=e93] [cursor=pointer]:
+          - /url: "#/progreso"
+          - img [ref=e94]
+          - generic [ref=e97]: PROGRESO
+        - link "HISTORIAL" [ref=e98] [cursor=pointer]:
+          - /url: "#/historial"
+          - img [ref=e99]
+          - generic [ref=e103]: HISTORIAL
+  - generic [ref=e4]:
+    - generic "Toggle devtools panel" [ref=e5] [cursor=pointer]:
+      - img [ref=e6]
+    - generic "Toggle Component Inspector" [ref=e11] [cursor=pointer]:
+      - img [ref=e12]

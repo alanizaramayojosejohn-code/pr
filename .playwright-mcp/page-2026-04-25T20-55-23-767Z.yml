@@ -1,0 +1,75 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e464]:
+      - generic [ref=e467]: PR
+      - link "J A" [ref=e468] [cursor=pointer]:
+        - /url: "#/cuenta"
+        - generic [ref=e469]: J
+        - generic "admin" [ref=e470]: A
+    - main [ref=e23]:
+      - generic [ref=e518]:
+        - generic [ref=e519]:
+          - heading "Usuarios" [level=1] [ref=e520]
+          - button "+ Nuevo usuario" [ref=e521] [cursor=pointer]
+        - table [ref=e522]:
+          - rowgroup [ref=e523]:
+            - row "Email Rol Estado Expira" [ref=e524]:
+              - columnheader "Email" [ref=e525]
+              - columnheader "Rol" [ref=e526]
+              - columnheader "Estado" [ref=e527]
+              - columnheader "Expira" [ref=e528]
+              - columnheader [ref=e529]
+          - rowgroup [ref=e530]:
+            - row "josejohnaa@gmail.com admin approved ∞" [ref=e531]:
+              - cell "josejohnaa@gmail.com" [ref=e532]
+              - cell "admin" [ref=e533]:
+                - combobox [disabled] [ref=e534]:
+                  - option "user"
+                  - option "admin" [selected]
+              - cell "approved" [ref=e535]:
+                - combobox [disabled] [ref=e536]:
+                  - option "approved" [selected]
+                  - option "blocked"
+              - cell "∞" [ref=e537]
+              - cell [ref=e538]
+            - row "alanizaramayojosejohn@gmail.com user approved 28 d Renovar mes" [ref=e539]:
+              - cell "alanizaramayojosejohn@gmail.com" [ref=e540]
+              - cell "user" [ref=e541]:
+                - combobox [ref=e542]:
+                  - option "user" [selected]
+                  - option "admin"
+              - cell "approved" [ref=e543]:
+                - combobox [ref=e544]:
+                  - option "approved" [selected]
+                  - option "blocked"
+              - cell "28 d" [ref=e545]:
+                - generic [ref=e546]: 28 d
+              - cell "Renovar mes" [ref=e547]:
+                - button "Renovar mes" [ref=e548] [cursor=pointer]
+    - navigation:
+      - generic [ref=e472]:
+        - link "HOY" [ref=e473] [cursor=pointer]:
+          - /url: "#/dashboard"
+          - img [ref=e474]
+          - generic [ref=e476]: HOY
+        - link "RUTINAS" [ref=e477] [cursor=pointer]:
+          - /url: "#/rutinas"
+          - img [ref=e478]
+          - generic [ref=e481]: RUTINAS
+        - link "MEDIDAS" [ref=e482] [cursor=pointer]:
+          - /url: "#/medidas"
+          - img [ref=e483]
+          - generic [ref=e486]: MEDIDAS
+        - link "PROGRESO" [ref=e487] [cursor=pointer]:
+          - /url: "#/progreso"
+          - img [ref=e488]
+          - generic [ref=e491]: PROGRESO
+        - link "HISTORIAL" [ref=e492] [cursor=pointer]:
+          - /url: "#/historial"
+          - img [ref=e493]
+          - generic [ref=e497]: HISTORIAL
+  - generic [ref=e4]:
+    - generic "Toggle devtools panel" [ref=e5] [cursor=pointer]:
+      - img [ref=e6]
+    - generic "Toggle Component Inspector" [ref=e11] [cursor=pointer]:
+      - img [ref=e12]

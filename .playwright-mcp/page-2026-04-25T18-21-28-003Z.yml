@@ -1,0 +1,75 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - generic [ref=e6]: PR
+      - link "J A" [ref=e7] [cursor=pointer]:
+        - /url: "#/cuenta"
+        - generic [ref=e8]: J
+        - generic "admin" [ref=e9]: A
+    - main [ref=e10]:
+      - generic [ref=e249]:
+        - generic [ref=e250]:
+          - heading "Rutinas" [level=1] [ref=e251]
+          - button "Nueva" [ref=e252] [cursor=pointer]:
+            - img [ref=e253]
+            - text: Nueva
+        - generic [ref=e255]:
+          - article [ref=e256] [cursor=pointer]:
+            - generic [ref=e257]: LUNES
+            - heading "y triceps" [level=2] [ref=e258]
+            - paragraph [ref=e259]: Sin ejercicios
+            - button "Empezar" [ref=e260]:
+              - img [ref=e261]
+              - text: Empezar
+          - article [ref=e263] [cursor=pointer]:
+            - generic [ref=e264]: LUNES
+            - heading "Pecho y triceps" [level=2] [ref=e265]
+            - paragraph [ref=e266]: 2 ej. · ~10 min
+            - button "Empezar" [ref=e267]:
+              - img [ref=e268]
+              - text: Empezar
+          - article [ref=e270] [cursor=pointer]:
+            - generic [ref=e271]: JUEVES
+            - heading "Espalda" [level=2] [ref=e272]
+            - paragraph [ref=e273]: 1 ej. · ~5 min
+            - button "Empezar" [ref=e274]:
+              - img [ref=e275]
+              - text: Empezar
+          - article [ref=e277] [cursor=pointer]:
+            - generic [ref=e278]: VIERNES
+            - heading "pierna" [level=2] [ref=e279]
+            - paragraph [ref=e280]: 5 ej. · ~25 min
+            - button "Empezar" [ref=e281]:
+              - img [ref=e282]
+              - text: Empezar
+          - button "Nueva rutina Crear desde cero" [ref=e284] [cursor=pointer]:
+            - img [ref=e286]
+            - generic [ref=e288]: Nueva rutina
+            - generic [ref=e289]: Crear desde cero
+    - navigation:
+      - generic [ref=e68]:
+        - link "HOY" [ref=e69] [cursor=pointer]:
+          - /url: "#/dashboard"
+          - img [ref=e70]
+          - generic [ref=e72]: HOY
+        - link "RUTINAS" [ref=e73] [cursor=pointer]:
+          - /url: "#/rutinas"
+          - img [ref=e74]
+          - generic [ref=e77]: RUTINAS
+        - link "MEDIDAS" [ref=e78] [cursor=pointer]:
+          - /url: "#/medidas"
+          - img [ref=e79]
+          - generic [ref=e82]: MEDIDAS
+        - link "PROGRESO" [ref=e83] [cursor=pointer]:
+          - /url: "#/progreso"
+          - img [ref=e84]
+          - generic [ref=e87]: PROGRESO
+        - link "HISTORIAL" [ref=e88] [cursor=pointer]:
+          - /url: "#/historial"
+          - img [ref=e89]
+          - generic [ref=e93]: HISTORIAL
+  - generic [ref=e94]:
+    - generic "Toggle devtools panel" [ref=e95] [cursor=pointer]:
+      - img [ref=e96]
+    - generic "Toggle Component Inspector" [ref=e101] [cursor=pointer]:
+      - img [ref=e102]

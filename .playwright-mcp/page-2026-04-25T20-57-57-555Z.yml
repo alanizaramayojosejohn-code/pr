@@ -1,0 +1,129 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e652]:
+      - generic [ref=e655]: PR
+      - link "J A" [ref=e656] [cursor=pointer]:
+        - /url: "#/cuenta"
+        - generic [ref=e657]: J
+        - generic "admin" [ref=e658]: A
+    - main [ref=e23]:
+      - generic [ref=e797]:
+        - generic [ref=e798]:
+          - button "Volver" [ref=e799] [cursor=pointer]:
+            - img [ref=e800]
+          - generic [ref=e802]:
+            - heading "Editar ejercicio" [level=1] [ref=e803]
+            - paragraph [ref=e804]: Around The Worlds · Pecho
+          - button "Eliminar" [ref=e805] [cursor=pointer]:
+            - img [ref=e806]
+        - generic [ref=e808]:
+          - generic [ref=e809]:
+            - heading "Imágenes del movimiento" [level=2] [ref=e810]
+            - generic [ref=e811]:
+              - generic [ref=e812] [cursor=pointer]:
+                - img "Inicio" [ref=e813]
+                - generic [ref=e814]: Inicio
+                - generic [ref=e815]: Cambiar
+              - generic [ref=e816] [cursor=pointer]:
+                - img "Fin" [ref=e817]
+                - generic [ref=e818]: Fin
+                - generic [ref=e819]: Cambiar
+            - generic [ref=e820] [cursor=pointer]:
+              - img [ref=e822]
+              - generic [ref=e825]:
+                - generic [ref=e826]: Subir video (opcional)
+                - generic [ref=e827]: MP4 · máx 20 MB
+              - img [ref=e828]
+          - generic [ref=e830]:
+            - generic [ref=e831]: Nombre
+            - 'textbox "Ej: Press banca" [ref=e832]': Around The Worlds
+          - generic [ref=e833]:
+            - generic [ref=e834]: Categoría
+            - generic [ref=e835]:
+              - button "Pecho" [ref=e836] [cursor=pointer]
+              - button "Espalda" [ref=e837] [cursor=pointer]
+              - button "Hombro" [ref=e838] [cursor=pointer]
+              - button "Brazo" [ref=e839] [cursor=pointer]
+              - button "Core" [ref=e840] [cursor=pointer]
+              - button "Cuádriceps" [ref=e841] [cursor=pointer]
+              - button "Isquios" [ref=e842] [cursor=pointer]
+              - button "Glúteos" [ref=e843] [cursor=pointer]
+              - button "Pantorrilla" [ref=e844] [cursor=pointer]
+              - button "Aductores" [ref=e845] [cursor=pointer]
+              - button "Sin categoría" [ref=e846] [cursor=pointer]
+          - generic [ref=e847]:
+            - generic [ref=e848]:
+              - generic [ref=e849]: Equipo
+              - 'textbox "Ej: Barra" [ref=e850]': dumbbell
+            - generic [ref=e851]:
+              - generic [ref=e852]: Mecánica
+              - combobox [ref=e853]:
+                - option "—"
+                - option "Compuesto" [selected]
+                - option "Aislado"
+          - generic [ref=e854]:
+            - generic [ref=e855]:
+              - generic [ref=e856]: Nivel
+              - combobox [ref=e857]:
+                - option "—"
+                - option "Principiante"
+                - option "Intermedio" [selected]
+                - option "Avanzado"
+            - generic [ref=e858]:
+              - generic [ref=e859]: Descanso
+              - generic [ref=e860]:
+                - spinbutton [ref=e861]: "90"
+                - generic [ref=e862]: seg
+          - generic [ref=e863]:
+            - heading "Instrucciones" [level=2] [ref=e864]:
+              - img [ref=e865]
+              - text: Instrucciones
+            - generic [ref=e868]:
+              - generic [ref=e869]:
+                - generic [ref=e870]: "1"
+                - textbox "Describí el paso…" [ref=e871]: "Acuéstate en un banco plano con una mancuerna en cada mano y las palmas mirando al techo. Consejo: los brazos deben estar paralelos al suelo y junto a los muslos. Mantén los codos ligeramente flexionados para evitar lesiones. Esta es tu posición inicial."
+                - button "Quitar paso" [ref=e872] [cursor=pointer]: ×
+              - generic [ref=e873]:
+                - generic [ref=e874]: "2"
+                - textbox "Describí el paso…" [ref=e875]: Mueve las mancuernas describiendo un semicírculo desde la posición inicial hasta por encima de la cabeza. Todo el movimiento ocurre con los brazos paralelos al suelo. Inhala durante el recorrido.
+                - button "Quitar paso" [ref=e876] [cursor=pointer]: ×
+              - generic [ref=e877]:
+                - generic [ref=e878]: "3"
+                - textbox "Describí el paso…" [ref=e879]: Invierte el movimiento para volver a la posición inicial mientras exhalas.
+                - button "Quitar paso" [ref=e880] [cursor=pointer]: ×
+            - button "+ Agregar paso" [ref=e881] [cursor=pointer]
+          - generic [ref=e882]:
+            - img [ref=e883]
+            - text: Catálogo · Around_The_Worlds
+        - generic [ref=e887]:
+          - button "Cancelar" [ref=e888] [cursor=pointer]
+          - button "Guardar" [ref=e889] [cursor=pointer]:
+            - img [ref=e890]
+            - text: Guardar
+    - navigation:
+      - generic [ref=e659]:
+        - link "HOY" [ref=e660] [cursor=pointer]:
+          - /url: "#/dashboard"
+          - img [ref=e661]
+          - generic [ref=e663]: HOY
+        - link "RUTINAS" [ref=e664] [cursor=pointer]:
+          - /url: "#/rutinas"
+          - img [ref=e665]
+          - generic [ref=e668]: RUTINAS
+        - link "MEDIDAS" [ref=e669] [cursor=pointer]:
+          - /url: "#/medidas"
+          - img [ref=e670]
+          - generic [ref=e673]: MEDIDAS
+        - link "PROGRESO" [ref=e674] [cursor=pointer]:
+          - /url: "#/progreso"
+          - img [ref=e675]
+          - generic [ref=e678]: PROGRESO
+        - link "HISTORIAL" [ref=e679] [cursor=pointer]:
+          - /url: "#/historial"
+          - img [ref=e680]
+          - generic [ref=e684]: HISTORIAL
+  - generic [ref=e4]:
+    - generic "Toggle devtools panel" [ref=e5] [cursor=pointer]:
+      - img [ref=e6]
+    - generic "Toggle Component Inspector" [ref=e11] [cursor=pointer]:
+      - img [ref=e12]

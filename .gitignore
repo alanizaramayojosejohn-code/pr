@@ -14,6 +14,12 @@ dist-ssr
 coverage
 *.local
 
+# Local env
+.env.local
+
+# Importador: cache local del JSON de free-exercise-db
+tmp/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

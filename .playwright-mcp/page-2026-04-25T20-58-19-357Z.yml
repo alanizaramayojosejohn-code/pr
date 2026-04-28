@@ -1,0 +1,44 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e892]:
+      - generic [ref=e895]: PR
+      - link "A" [ref=e896] [cursor=pointer]:
+        - /url: "#/cuenta"
+        - generic [ref=e897]: A
+    - main [ref=e23]:
+      - generic [ref=e924]:
+        - generic [ref=e925]:
+          - generic [ref=e926]: SÁBADO, 25 DE ABRIL
+          - heading "Hola, Alanizaramayojosejohn" [level=1] [ref=e927]
+        - generic [ref=e928]:
+          - generic [ref=e929]: HOY · SÁBADO
+          - paragraph [ref=e930]: No tenés rutina asignada para hoy.
+          - link "Elegir una rutina" [ref=e931] [cursor=pointer]:
+            - /url: "#/rutinas"
+    - navigation:
+      - generic [ref=e898]:
+        - link "HOY" [ref=e899] [cursor=pointer]:
+          - /url: "#/dashboard"
+          - img [ref=e900]
+          - generic [ref=e902]: HOY
+        - link "RUTINAS" [ref=e903] [cursor=pointer]:
+          - /url: "#/rutinas"
+          - img [ref=e904]
+          - generic [ref=e907]: RUTINAS
+        - link "MEDIDAS" [ref=e908] [cursor=pointer]:
+          - /url: "#/medidas"
+          - img [ref=e909]
+          - generic [ref=e912]: MEDIDAS
+        - link "PROGRESO" [ref=e913] [cursor=pointer]:
+          - /url: "#/progreso"
+          - img [ref=e914]
+          - generic [ref=e917]: PROGRESO
+        - link "HISTORIAL" [ref=e918] [cursor=pointer]:
+          - /url: "#/historial"
+          - img [ref=e919]
+          - generic [ref=e923]: HISTORIAL
+  - generic [ref=e4]:
+    - generic "Toggle devtools panel" [ref=e5] [cursor=pointer]:
+      - img [ref=e6]
+    - generic "Toggle Component Inspector" [ref=e11] [cursor=pointer]:
+      - img [ref=e12]

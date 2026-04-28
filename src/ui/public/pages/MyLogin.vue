@@ -1,56 +1,191 @@
 <template>
-  <div>
-    <h1>{{ esRegistro ? "Crear cuenta" : "Iniciar sesión" }}</h1>
-
-    <div>
-      <input
-        v-model="email"
-        type="email"
-        placeholder="Email"
-      />
-      <input
-        v-model="password"
-        type="password"
-        placeholder="Contraseña"
-      />
-
-      <p v-if="error" style="color: red;">{{ error }}</p>
-
-      <button @click="handleSubmit" :disabled="loading">
-        {{ loading ? "Cargando..." : esRegistro ? "Registrarse" : "Entrar" }}
-      </button>
-
-      <p>
-        {{ esRegistro ? "¿Ya tienes cuenta?" : "¿No tienes cuenta?" }}
-        <span @click="esRegistro = !esRegistro" style="cursor: pointer; color: blue;">
-          {{ esRegistro ? "Inicia sesión" : "Regístrate" }}
-        </span>
-      </p>
+  <div class="login">
+    <div class="login__brand">
+      <span class="login__brand-dot"></span>
+      <span class="login__brand-name">GYM</span>
     </div>
+    <form class="login__card" @submit.prevent="handleSubmit">
+      <h1 class="login__title">Iniciar sesión</h1>
+      <p class="login__subtitle">Seguí tu progreso en el gimnasio</p>
+
+      <label class="login__field">
+        <span>Email</span>
+        <input
+          v-model.trim="email"
+          type="email"
+          autocomplete="email"
+          required
+          :disabled="loading"
+          @input="clearError"
+        />
+      </label>
+
+      <label class="login__field">
+        <span>Contraseña</span>
+        <input
+          v-model="password"
+          type="password"
+          autocomplete="current-password"
+          minlength="6"
+          required
+          :disabled="loading"
+          @input="clearError"
+        />
+      </label>
+
+      <p v-if="blockedMessage" class="login__error">{{ blockedMessage }}</p>
+      <p v-if="localError || error" class="login__error">
+        {{ localError || error }}
+      </p>
+
+      <button class="login__submit" type="submit" :disabled="loading || !canSubmit">
+        {{ loading ? "Entrando…" : "Entrar" }}
+      </button>
+    </form>
   </div>
 </template>
 
 <script setup lang="ts">
 import { useAuth } from "@/composables/useAuth";
-import { useRouter } from "vue-router";
-import { ref } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { computed, ref } from "vue";
 
-const { login, registrar, error, loading } = useAuth();
+const { login, error, loading, blockedMessage } = useAuth();
 const router = useRouter();
+const route = useRoute();
 
 const email = ref("");
 const password = ref("");
-const esRegistro = ref(false);
+const localError = ref<string | null>(null);
+
+const canSubmit = computed(
+  () => email.value.length > 0 && password.value.length >= 6
+);
+
+function clearError() {
+  localError.value = null;
+  error.value = null;
+}
 
 async function handleSubmit() {
-  if (esRegistro.value) {
-    await registrar(email.value, password.value);
-  } else {
-    await login(email.value, password.value);
+  clearError();
+
+  if (!/^\S+@\S+\.\S+$/.test(email.value)) {
+    localError.value = "Introduce un email válido.";
+    return;
+  }
+  if (password.value.length < 6) {
+    localError.value = "La contraseña debe tener al menos 6 caracteres.";
+    return;
   }
 
-  if (!error.value) {
-    router.push("/tareas");
-  }
+  await login(email.value, password.value);
+  if (error.value) return;
+
+  const redirect = typeof route.query.redirect === "string" ? route.query.redirect : "/dashboard";
+  router.push(redirect);
 }
 </script>
+
+<style scoped>
+.login {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  padding: 24px;
+  background: var(--surface-0);
+}
+.login__brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+.login__brand-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: var(--radius-pill);
+  background: var(--brand-500);
+  box-shadow: 0 0 20px var(--brand-glow);
+}
+.login__brand-name {
+  font-family: var(--font-display);
+  font-weight: var(--weight-bold);
+  letter-spacing: 3px;
+  color: var(--text-primary);
+  font-size: 16px;
+}
+.login__card {
+  width: 100%;
+  max-width: 380px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 28px 24px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+  background: var(--surface-1);
+}
+.login__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: var(--weight-bold);
+  letter-spacing: -0.4px;
+  color: var(--text-primary);
+}
+.login__subtitle {
+  margin: 0 0 4px;
+  color: var(--text-tertiary);
+  font-size: 13px;
+}
+.login__field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: var(--weight-semibold);
+  color: var(--text-secondary);
+}
+.login__field input {
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-default);
+  background: var(--surface-2);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: var(--weight-regular);
+}
+.login__field input:focus {
+  outline: none;
+  border-color: var(--brand-500);
+  box-shadow: 0 0 0 2px var(--brand-glow);
+}
+.login__error {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--danger-glow);
+  color: var(--danger);
+  font-size: 13px;
+}
+.login__submit {
+  height: 48px;
+  margin-top: 4px;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: var(--brand-500);
+  color: var(--surface-0);
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: var(--weight-bold);
+  cursor: pointer;
+}
+.login__submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+</style>

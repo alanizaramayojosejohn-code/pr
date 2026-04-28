@@ -8,16 +8,23 @@
     "build": "run-p type-check \"build-only {@}\" --",
     "preview": "vite preview",
     "build-only": "vite build",
-    "type-check": "vue-tsc --build"
+    "type-check": "vue-tsc --build",
+    "generate-pwa-assets": "pwa-assets-generator --override",
+    "import-exercises": "node scripts/import-exercises.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.99.1",
+    "dompurify": "^3.4.1",
+    "markdown-it": "^14.1.1",
     "vue": "^3.5.29",
     "vue-router": "^4.6.4"
   },
   "devDependencies": {
     "@tsconfig/node24": "^24.0.4",
+    "@types/dompurify": "^3.0.5",
+    "@types/markdown-it": "^14.1.2",
     "@types/node": "^24.11.0",
+    "@vite-pwa/assets-generator": "^1.0.2",
     "@vitejs/plugin-vue": "^6.0.4",
     "@vue/tsconfig": "^0.8.1",
     "npm-run-all2": "^8.0.4",

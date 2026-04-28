@@ -1,0 +1,48 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e464]:
+      - generic [ref=e467]: PR
+      - link "J A" [ref=e468] [cursor=pointer]:
+        - /url: "#/cuenta"
+        - generic [ref=e469]: J
+        - generic "admin" [ref=e470]: A
+    - main [ref=e23]:
+      - generic [ref=e450]:
+        - generic [ref=e453]: GYM
+        - generic [ref=e454]:
+          - heading "Iniciar sesión" [level=1] [ref=e455]
+          - paragraph [ref=e456]: Seguí tu progreso en el gimnasio
+          - generic [ref=e457]:
+            - generic [ref=e458]: Email
+            - textbox "Email" [disabled] [ref=e459]: josejohnaa@gmail.com
+          - generic [ref=e460]:
+            - generic [ref=e461]: Contraseña
+            - textbox "Contraseña" [disabled] [ref=e462]: Josi1234.
+          - button "Entrando…" [disabled] [ref=e471]
+    - navigation:
+      - generic [ref=e472]:
+        - link "HOY" [ref=e473] [cursor=pointer]:
+          - /url: "#/dashboard"
+          - img [ref=e474]
+          - generic [ref=e476]: HOY
+        - link "RUTINAS" [ref=e477] [cursor=pointer]:
+          - /url: "#/rutinas"
+          - img [ref=e478]
+          - generic [ref=e481]: RUTINAS
+        - link "MEDIDAS" [ref=e482] [cursor=pointer]:
+          - /url: "#/medidas"
+          - img [ref=e483]
+          - generic [ref=e486]: MEDIDAS
+        - link "PROGRESO" [ref=e487] [cursor=pointer]:
+          - /url: "#/progreso"
+          - img [ref=e488]
+          - generic [ref=e491]: PROGRESO
+        - link "HISTORIAL" [ref=e492] [cursor=pointer]:
+          - /url: "#/historial"
+          - img [ref=e493]
+          - generic [ref=e497]: HISTORIAL
+  - generic [ref=e4]:
+    - generic "Toggle devtools panel" [ref=e5] [cursor=pointer]:
+      - img [ref=e6]
+    - generic "Toggle Component Inspector" [ref=e11] [cursor=pointer]:
+      - img [ref=e12]

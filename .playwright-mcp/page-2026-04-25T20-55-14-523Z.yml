@@ -1,0 +1,51 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e464]:
+      - generic [ref=e467]: PR
+      - link "J A" [ref=e468] [cursor=pointer]:
+        - /url: "#/cuenta"
+        - generic [ref=e469]: J
+        - generic "admin" [ref=e470]: A
+    - main [ref=e23]:
+      - generic [ref=e498]:
+        - generic [ref=e499]:
+          - generic [ref=e500]: SÁBADO, 25 DE ABRIL
+          - heading "Hola, Josejohnaa" [level=1] [ref=e501]
+        - generic [ref=e502]:
+          - heading "Administración" [level=3] [ref=e503]
+          - generic [ref=e504]:
+            - link "Ejercicios" [ref=e505] [cursor=pointer]:
+              - /url: "#/ejercicios"
+              - img [ref=e507]
+              - generic [ref=e509]: Ejercicios
+            - link "Usuarios" [ref=e510] [cursor=pointer]:
+              - /url: "#/usuarios"
+              - img [ref=e512]
+              - generic [ref=e517]: Usuarios
+    - navigation:
+      - generic [ref=e472]:
+        - link "HOY" [ref=e473] [cursor=pointer]:
+          - /url: "#/dashboard"
+          - img [ref=e474]
+          - generic [ref=e476]: HOY
+        - link "RUTINAS" [ref=e477] [cursor=pointer]:
+          - /url: "#/rutinas"
+          - img [ref=e478]
+          - generic [ref=e481]: RUTINAS
+        - link "MEDIDAS" [ref=e482] [cursor=pointer]:
+          - /url: "#/medidas"
+          - img [ref=e483]
+          - generic [ref=e486]: MEDIDAS
+        - link "PROGRESO" [ref=e487] [cursor=pointer]:
+          - /url: "#/progreso"
+          - img [ref=e488]
+          - generic [ref=e491]: PROGRESO
+        - link "HISTORIAL" [ref=e492] [cursor=pointer]:
+          - /url: "#/historial"
+          - img [ref=e493]
+          - generic [ref=e497]: HISTORIAL
+  - generic [ref=e4]:
+    - generic "Toggle devtools panel" [ref=e5] [cursor=pointer]:
+      - img [ref=e6]
+    - generic "Toggle Component Inspector" [ref=e11] [cursor=pointer]:
+      - img [ref=e12]

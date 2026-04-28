@@ -1,0 +1,19 @@
+- generic [active] [ref=e1]:
+  - main [ref=e23]:
+    - generic [ref=e450]:
+      - generic [ref=e453]: GYM
+      - generic [ref=e454]:
+        - heading "Iniciar sesión" [level=1] [ref=e455]
+        - paragraph [ref=e456]: Seguí tu progreso en el gimnasio
+        - generic [ref=e457]:
+          - generic [ref=e458]: Email
+          - textbox "Email" [ref=e459]
+        - generic [ref=e460]:
+          - generic [ref=e461]: Contraseña
+          - textbox "Contraseña" [ref=e462]
+        - button "Entrar" [disabled] [ref=e463]
+  - generic [ref=e4]:
+    - generic "Toggle devtools panel" [ref=e5] [cursor=pointer]:
+      - img [ref=e6]
+    - generic "Toggle Component Inspector" [ref=e11] [cursor=pointer]:
+      - img [ref=e12]

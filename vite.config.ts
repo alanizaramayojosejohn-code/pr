@@ -11,17 +11,40 @@ export default defineConfig({
     vueDevTools(),
     VitePWA({
       registerType: "autoUpdate",
+      strategies: "injectManifest",
+      srcDir: "src",
+      filename: "sw.ts",
+      injectManifest: {
+        globPatterns: ["**/*.{js,css,html,svg,png,ico,webmanifest}"],
+      },
       devOptions: {
         enabled: false,
       },
+      includeAssets: [
+        "favicon.ico",
+        "apple-touch-icon-180x180.png",
+        "logo.svg",
+      ],
       manifest: {
-        name: "Vue PWA App",
-        short_name: "VuePWA",
+        id: "/",
+        name: "PR — Gym Tracker",
+        short_name: "PR",
+        description: "Tracking de gimnasio personal — rutinas, sesiones, medidas y progreso.",
+        lang: "es",
+        dir: "ltr",
         start_url: "/",
+        scope: "/",
         display: "standalone",
-        background_color: "#ffffff",
-        theme_color: "#42b883",
+        orientation: "portrait",
+        background_color: "#0E1512",
+        theme_color: "#0E1512",
+        categories: ["fitness", "health", "lifestyle"],
         icons: [
+          {
+            src: "pwa-64x64.png",
+            sizes: "64x64",
+            type: "image/png",
+          },
           {
             src: "pwa-192x192.png",
             sizes: "192x192",
@@ -31,6 +54,12 @@ export default defineConfig({
             src: "pwa-512x512.png",
             sizes: "512x512",
             type: "image/png",
+          },
+          {
+            src: "maskable-icon-512x512.png",
+            sizes: "512x512",
+            type: "image/png",
+            purpose: "maskable",
           },
         ],
       },

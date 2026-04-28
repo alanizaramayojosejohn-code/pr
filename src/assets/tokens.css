@@ -1,0 +1,94 @@
+/*
+ * Gym Tracker — Design Tokens
+ * ---------------------------
+ * Punto único para modificar la paleta, tipografía y escalas.
+ * Cambiar aquí se refleja en toda la app.
+ *
+ * Si querés un nuevo tema (ej. modo light o paleta roja), basta con
+ * sobreescribir los tokens dentro de un selector específico
+ * (ej. `html[data-theme="light"] { ... }`).
+ */
+
+:root {
+  /* --- Brand · verde señal --- */
+  --brand-300: #7be8a3;
+  --brand-400: #4ed989;
+  --brand-500: #22c55e; /* primary */
+  --brand-600: #16a34a;
+  --brand-700: #15803d;
+  --brand-glow: #22c55e33; /* alpha — fondos suaves */
+
+  /* --- Surfaces · soft dark stack --- */
+  --surface-0: #0e1512; /* fondo principal de la app */
+  --surface-1: #161e1a; /* cards */
+  --surface-2: #1e2823; /* inputs / elevated */
+  --surface-3: #27332d; /* hover / interactive */
+
+  /* --- Text --- */
+  --text-primary: #e8f0eb;
+  --text-secondary: #a7b3ad;
+  --text-tertiary: #7a847f;
+  --text-disabled: #4e5752;
+
+  /* --- Borders --- */
+  --border-subtle: #ffffff12;
+  --border-default: #ffffff22;
+  --border-strong: #ffffff33;
+
+  /* --- Semantic --- */
+  --success: #22c55e;
+  --success-glow: #22c55e33;
+  --warning: #f59e0b;
+  --warning-glow: #f59e0b22;
+  --danger: #ef5350;
+  --danger-glow: #ef535022;
+
+  /* --- Typography --- */
+  --font-display: 'Unbounded', 'Inter', system-ui, sans-serif;
+  --font-body: 'Geist', 'Inter', system-ui, sans-serif;
+
+  --text-display-1: 32px;
+  --text-display-2: 24px;
+  --text-display-3: 20px;
+  --text-title: 18px;
+  --text-body: 16px;
+  --text-body-sm: 14px;
+  --text-caption: 12px;
+  --text-label: 11px;
+
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+
+  /* --- Spacing --- */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+
+  /* --- Radius --- */
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-pill: 999px;
+
+  /* --- Shadow --- */
+  --shadow-card: 0 1px 2px #00000040;
+  --shadow-elevated: 0 8px 24px #00000066;
+
+  /* --- Alias legacy (componentes que aún usan --color-*) --- */
+  --color-background: var(--surface-0);
+  --color-background-soft: var(--surface-1);
+  --color-background-mute: var(--surface-2);
+  --color-border: var(--border-subtle);
+  --color-border-hover: var(--border-default);
+  --color-heading: var(--text-primary);
+  --color-text: var(--text-secondary);
+}

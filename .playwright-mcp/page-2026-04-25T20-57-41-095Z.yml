@@ -1,0 +1,134 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e652]:
+      - generic [ref=e655]: PR
+      - link "J A" [ref=e656] [cursor=pointer]:
+        - /url: "#/cuenta"
+        - generic [ref=e657]: J
+        - generic "admin" [ref=e658]: A
+    - main [ref=e23]:
+      - generic [ref=e686]:
+        - generic [ref=e687]:
+          - button "Volver" [ref=e688] [cursor=pointer]:
+            - img [ref=e689]
+          - generic [ref=e691]:
+            - heading "Pecho" [level=1] [ref=e692]
+            - paragraph [ref=e693]: 67 ejercicios · catálogo
+          - button "+ Nuevo" [ref=e694] [cursor=pointer]
+        - generic [ref=e695]:
+          - img [ref=e696]
+          - textbox "Buscar en Pecho…" [ref=e699]
+        - list [ref=e700]:
+          - listitem [ref=e701] [cursor=pointer]:
+            - img "Alternating Floor Press" [ref=e703]
+            - generic [ref=e704]:
+              - generic [ref=e705]: Alternating Floor Press
+              - generic [ref=e706]: Acuéstate en el suelo con dos pesas rusas junto a los hombros. Coloca primero una sobre el pecho y luego la otra, tomándolas del asa con las palmas hacia adelante. Extiende ambos brazos para que las pesas queden por encima del pecho. Baja una pesa al pecho girando la muñeca hacia el lado de la pesa que queda extendida. Sube la pesa y repite con el otro lado.
+            - generic [ref=e707]:
+              - button "Editar" [ref=e708]
+              - button "Eliminar" [ref=e709]: ×
+          - listitem [ref=e710] [cursor=pointer]:
+            - img "Around The Worlds" [ref=e712]
+            - generic [ref=e713]:
+              - generic [ref=e714]: Around The Worlds
+              - generic [ref=e715]: "Acuéstate en un banco plano con una mancuerna en cada mano y las palmas mirando al techo. Consejo: los brazos deben estar paralelos al suelo y junto a los muslos. Mantén los codos ligeramente flexionados para evitar lesiones. Esta es tu posición inicial. Mueve las mancuernas describiendo un semicírculo desde la posición inicial hasta por encima de la cabeza. Todo el movimiento ocurre con los brazos paralelos al suelo. Inhala durante el recorrido. Invierte el movimiento para volver a la posición inicial mientras exhalas."
+            - generic [ref=e716]:
+              - button "Editar" [ref=e717]
+              - button "Eliminar" [ref=e718]: ×
+          - listitem [ref=e719] [cursor=pointer]:
+            - img "Barbell Bench Press - Medium Grip" [ref=e721]
+            - generic [ref=e722]:
+              - generic [ref=e723]: Barbell Bench Press - Medium Grip
+              - generic [ref=e724]: "Acuéstate boca arriba en un banco plano. Con un agarre medio (el que forma un ángulo de 90 grados entre antebrazo y brazo a la mitad del movimiento), levanta la barra del rack y sostenla recta sobre ti con los brazos bloqueados. Esta es tu posición inicial. Desde la posición inicial, inhala y baja lentamente hasta que la barra toque el centro del pecho. Tras una breve pausa, empuja la barra de vuelta a la posición inicial mientras exhalas. Concéntrate en empujar la barra con los pectorales. Bloquea los brazos y contrae el pecho arriba, sostén un segundo y vuelve a bajar lentamente. Consejo: idealmente bajar el peso debe tomar el doble de tiempo que subirlo. Repite el movimiento durante la cantidad de repeticiones prescrita. Cuando termines, vuelve a colocar la barra en el rack."
+            - generic [ref=e725]:
+              - button "Editar" [ref=e726]
+              - button "Eliminar" [ref=e727]: ×
+          - listitem [ref=e728] [cursor=pointer]:
+            - img "Barbell Guillotine Bench Press" [ref=e730]
+            - generic [ref=e731]:
+              - generic [ref=e732]: Barbell Guillotine Bench Press
+              - generic [ref=e733]: Con un agarre medio (el que forma un ángulo de 90 grados entre antebrazo y brazo a la mitad del movimiento), levanta la barra del rack y sostenla recta sobre el cuello con los brazos bloqueados. Esta es tu posición inicial. Mientras inhalas, baja la barra lentamente hasta que quede a unos 2-3 cm del cuello. Tras una pausa, lleva la barra de vuelta a la posición inicial mientras exhalas y empujas con los pectorales. Bloquea los brazos y contrae el pecho en la posición arriba, sostén un segundo y vuelve a bajar lentamente. Debe tardar al menos el doble en bajar que en subir. Repite el movimiento durante la cantidad de repeticiones prescrita. Cuando termines, vuelve a colocar la barra en el rack.
+            - generic [ref=e734]:
+              - button "Editar" [ref=e735]
+              - button "Eliminar" [ref=e736]: ×
+          - listitem [ref=e737] [cursor=pointer]:
+            - img "Barbell Incline Bench Press - Medium Grip" [ref=e739]
+            - generic [ref=e740]:
+              - generic [ref=e741]: Barbell Incline Bench Press - Medium Grip
+              - generic [ref=e742]: "Acuéstate en un banco inclinado. Con un agarre medio (el que forma un ángulo de 90 grados entre antebrazo y brazo a la mitad del movimiento), levanta la barra del rack y sostenla recta sobre ti con los brazos bloqueados. Esta es tu posición inicial. Mientras inhalas, baja lentamente hasta que sientas la barra en la parte alta del pecho. Tras una pausa, lleva la barra de vuelta a la posición inicial mientras exhalas y empujas con los pectorales. Bloquea los brazos en la posición arriba, contrae el pecho, sostén un segundo y vuelve a bajar lentamente. Consejo: debe tardar al menos el doble en bajar que en subir. Repite el movimiento durante la cantidad de repeticiones prescrita. Cuando termines, vuelve a colocar la barra en el rack."
+            - generic [ref=e743]:
+              - button "Editar" [ref=e744]
+              - button "Eliminar" [ref=e745]: ×
+          - listitem [ref=e746] [cursor=pointer]:
+            - img "Behind Head Chest Stretch" [ref=e748]
+            - generic [ref=e749]:
+              - generic [ref=e750]: Behind Head Chest Stretch
+              - generic [ref=e751]: Siéntate erguido en el suelo con tu compañero detrás de ti. Coloca las manos detrás de la cabeza y lleva los codos hacia atrás lo más posible. Tu compañero debe sostenerte los codos. Esta es tu posición inicial. Intenta tirar suavemente de los codos hacia adelante con las manos aún detrás de la cabeza durante 10 segundos o más. Tu compañero debe evitar que los codos se muevan. Ahora relaja los músculos y deja que tu compañero tire suavemente de los codos hacia atrás hasta donde te resulte cómodo. Asegúrate de avisarle cuando el estiramiento sea suficiente para evitar estirar de más o lesionarte.
+            - generic [ref=e752]:
+              - button "Editar" [ref=e753]
+              - button "Eliminar" [ref=e754]: ×
+          - listitem [ref=e755] [cursor=pointer]:
+            - img "Bench Press - With Bands" [ref=e757]
+            - generic [ref=e758]:
+              - generic [ref=e759]: Bench Press - With Bands
+              - generic [ref=e760]: "Usando un banco plano, asegura una banda bajo la pata del banco que quede más cerca de la cabeza. Una vez asegurada la banda, tómala por ambos mangos y acuéstate en el banco. Extiende los brazos sosteniendo los mangos al frente al ancho de los hombros. Ya al ancho de los hombros, rota las muñecas hacia adelante de modo que las palmas queden mirando al frente. Esta es tu posición inicial. Baja los mangos lentamente hasta que el codo forme un ángulo de 90 grados. Mantén el control total en todo momento. Al exhalar, eleva los mangos usando los pectorales. Bloquea los brazos en la posición arriba, contrae el pecho, sostén un segundo y comienza a bajar lentamente. Consejo: debe tardar al menos el doble en bajar que en subir. Repite el movimiento durante la cantidad de repeticiones prescrita por tu programa de entrenamiento."
+            - generic [ref=e761]:
+              - button "Editar" [ref=e762]
+              - button "Eliminar" [ref=e763]: ×
+          - listitem [ref=e764] [cursor=pointer]:
+            - img "Bent-Arm Dumbbell Pullover" [ref=e766]
+            - generic [ref=e767]:
+              - generic [ref=e768]: Bent-Arm Dumbbell Pullover
+              - generic [ref=e769]: "Coloca una mancuerna parada sobre un banco plano. Asegurándote de que la mancuerna quede firme arriba del banco, acuéstate perpendicular al banco (el torso atravesado formando una cruz) con solo los hombros apoyados en la superficie. Las caderas deben quedar por debajo del banco y las piernas flexionadas con los pies firmes en el suelo. La cabeza también queda fuera del banco. Toma la mancuerna con ambas manos y sostenla recta sobre el pecho con los brazos flexionados. Ambas palmas deben presionar contra la cara inferior de uno de los extremos de la mancuerna. Esta es tu posición inicial. Precaución: asegúrate siempre de que la mancuerna esté firme. Usar una mancuerna con discos flojos puede hacer que se desarme y te caiga en la cara. Manteniendo los brazos bloqueados en la posición flexionada, baja el peso lentamente en arco detrás de la cabeza mientras inhalas hasta sentir un estiramiento en el pecho. En ese punto, lleva la mancuerna de vuelta a la posición inicial por el mismo arco y exhala al ejecutar el movimiento. Sostén el peso en la posición inicial un segundo y repite el movimiento durante la cantidad de repeticiones prescrita."
+            - generic [ref=e770]:
+              - button "Editar" [ref=e771]
+              - button "Eliminar" [ref=e772]: ×
+          - listitem [ref=e773] [cursor=pointer]:
+            - img "Bodyweight Flyes" [ref=e775]
+            - generic [ref=e776]:
+              - generic [ref=e777]: Bodyweight Flyes
+              - generic [ref=e778]: Coloca dos barras EZ con peso igual en el suelo una al lado de la otra. Asegúrate de que puedan rodar. Adopta una posición de flexión sobre las barras, apoyando el peso en las puntas de los pies y las manos con los brazos extendidos y el cuerpo recto. Coloca las manos sobre las barras. Esta es tu posición inicial. Con un movimiento lento y controlado, aleja las manos de la línea media del cuerpo, rodando las barras hacia afuera. Inhala durante esta parte del movimiento. Tras separar las barras lo más que puedas, vuelve a la posición inicial juntándolas nuevamente. Exhala al ejecutar este movimiento.
+            - generic [ref=e779]:
+              - button "Editar" [ref=e780]
+              - button "Eliminar" [ref=e781]: ×
+          - listitem [ref=e782] [cursor=pointer]:
+            - img "Butterfly" [ref=e784]
+            - generic [ref=e785]:
+              - generic [ref=e786]: Butterfly
+              - generic [ref=e787]: "Siéntate en la máquina con la espalda plana contra la almohadilla. Toma los mangos. Consejo: los brazos deben quedar paralelos al suelo; ajusta la máquina según corresponda. Esta es tu posición inicial. Empuja los mangos para juntarlos lentamente contrayendo el pecho en el medio. Exhala durante esta parte del movimiento y sostén la contracción un segundo. Vuelve a la posición inicial lentamente mientras inhalas hasta que los pectorales estén totalmente estirados. Repite la cantidad de repeticiones recomendada."
+            - generic [ref=e788]:
+              - button "Editar" [ref=e789]
+              - button "Eliminar" [ref=e790]: ×
+        - navigation [ref=e791]:
+          - button "Anterior" [disabled] [ref=e792]: ‹
+          - button "1" [ref=e793] [cursor=pointer]
+          - button "2" [ref=e794] [cursor=pointer]
+          - button "3" [ref=e795] [cursor=pointer]
+          - button "Siguiente" [ref=e796] [cursor=pointer]: ›
+    - navigation:
+      - generic [ref=e659]:
+        - link "HOY" [ref=e660] [cursor=pointer]:
+          - /url: "#/dashboard"
+          - img [ref=e661]
+          - generic [ref=e663]: HOY
+        - link "RUTINAS" [ref=e664] [cursor=pointer]:
+          - /url: "#/rutinas"
+          - img [ref=e665]
+          - generic [ref=e668]: RUTINAS
+        - link "MEDIDAS" [ref=e669] [cursor=pointer]:
+          - /url: "#/medidas"
+          - img [ref=e670]
+          - generic [ref=e673]: MEDIDAS
+        - link "PROGRESO" [ref=e674] [cursor=pointer]:
+          - /url: "#/progreso"
+          - img [ref=e675]
+          - generic [ref=e678]: PROGRESO
+        - link "HISTORIAL" [ref=e679] [cursor=pointer]:
+          - /url: "#/historial"
+          - img [ref=e680]
+          - generic [ref=e684]: HISTORIAL
+  - generic [ref=e4]:
+    - generic "Toggle devtools panel" [ref=e5] [cursor=pointer]:
+      - img [ref=e6]
+    - generic "Toggle Component Inspector" [ref=e11] [cursor=pointer]:
+      - img [ref=e12]

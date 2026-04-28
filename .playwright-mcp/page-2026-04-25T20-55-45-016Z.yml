@@ -1,0 +1,45 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e464]:
+      - generic [ref=e467]: PR
+      - link "J A" [ref=e468] [cursor=pointer]:
+        - /url: "#/cuenta"
+        - generic [ref=e469]: J
+        - generic "admin" [ref=e470]: A
+    - main [ref=e23]:
+      - generic [ref=e549]:
+        - generic [ref=e550]:
+          - button "Volver" [ref=e551] [cursor=pointer]:
+            - img [ref=e552]
+          - generic [ref=e554]:
+            - heading "Categorías" [level=1] [ref=e555]
+            - paragraph [ref=e556]: Elige un grupo muscular
+          - button "+ Nueva" [ref=e557] [cursor=pointer]
+        - paragraph [ref=e558]: Cargando…
+    - navigation:
+      - generic [ref=e472]:
+        - link "HOY" [ref=e473] [cursor=pointer]:
+          - /url: "#/dashboard"
+          - img [ref=e474]
+          - generic [ref=e476]: HOY
+        - link "RUTINAS" [ref=e477] [cursor=pointer]:
+          - /url: "#/rutinas"
+          - img [ref=e478]
+          - generic [ref=e481]: RUTINAS
+        - link "MEDIDAS" [ref=e482] [cursor=pointer]:
+          - /url: "#/medidas"
+          - img [ref=e483]
+          - generic [ref=e486]: MEDIDAS
+        - link "PROGRESO" [ref=e487] [cursor=pointer]:
+          - /url: "#/progreso"
+          - img [ref=e488]
+          - generic [ref=e491]: PROGRESO
+        - link "HISTORIAL" [ref=e492] [cursor=pointer]:
+          - /url: "#/historial"
+          - img [ref=e493]
+          - generic [ref=e497]: HISTORIAL
+  - generic [ref=e4]:
+    - generic "Toggle devtools panel" [ref=e5] [cursor=pointer]:
+      - img [ref=e6]
+    - generic "Toggle Component Inspector" [ref=e11] [cursor=pointer]:
+      - img [ref=e12]
