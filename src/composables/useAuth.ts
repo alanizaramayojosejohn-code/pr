@@ -1,6 +1,7 @@
 import { supabase } from "@/supabase";
 import { computed, ref } from "vue";
 import type { User } from "@supabase/supabase-js";
+import { Capacitor } from "@capacitor/core";
 
 export interface Profile {
   id: string;
@@ -19,7 +20,9 @@ const ready = ref(false);
 const blockedMessage = ref<string | null>(null);
 
 const isLoggedIn = computed(() => user.value !== null);
-const isAdmin = computed(() => profile.value?.role === "admin");
+const isAdmin = computed(
+  () => !Capacitor.isNativePlatform() && profile.value?.role === "admin",
+);
 
 async function loadProfile(userId: string): Promise<Profile | null> {
   const { data, error: err } = await supabase
