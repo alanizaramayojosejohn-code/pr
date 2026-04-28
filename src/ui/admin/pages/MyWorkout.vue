@@ -315,6 +315,7 @@ function notifyRestEnded() {
     navigator.vibrate([200, 100, 200]);
   }
   playBeep();
+  void notifications.hapticRestEnd();
 }
 
 async function scheduleSWRest(sec: number) {
@@ -495,6 +496,7 @@ async function onLogChange(l: ExerciseLog, field: "weight" | "reps") {
 }
 
 async function onToggle(l: ExerciseLog, exerciseId: number, idx: number) {
+  void notifications.hapticTick();
   if (isLogCompleted(l)) {
     await updateLog(l.id, { rest_seconds_used: null });
     return;
