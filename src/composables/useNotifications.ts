@@ -46,17 +46,21 @@ export function useNotifications() {
 
   async function scheduleRest(durationSec: number, body: string): Promise<void> {
     if (isNative) {
-      await LocalNotifications.schedule({
-        notifications: [
-          {
-            id: REST_NOTIF_ID,
-            title: "¡Descanso terminado!",
-            body,
-            schedule: { at: new Date(Date.now() + durationSec * 1000) },
-            smallIcon: "ic_launcher",
-          },
-        ],
-      });
+      try {
+        await LocalNotifications.schedule({
+          notifications: [
+            {
+              id: REST_NOTIF_ID,
+              title: "¡Descanso terminado!",
+              body,
+              schedule: { at: new Date(Date.now() + durationSec * 1000) },
+              smallIcon: "ic_launcher",
+            },
+          ],
+        });
+      } catch (err) {
+        console.warn("[notifications] schedule failed", err);
+      }
       return;
     }
     return postToSW({
@@ -68,7 +72,11 @@ export function useNotifications() {
 
   async function cancelRest(): Promise<void> {
     if (isNative) {
-      await LocalNotifications.cancel({ notifications: [{ id: REST_NOTIF_ID }] });
+      try {
+        await LocalNotifications.cancel({ notifications: [{ id: REST_NOTIF_ID }] });
+      } catch {
+        /* nothing scheduled, ignore */
+      }
       return;
     }
     return postToSW({ type: "cancel-rest" });

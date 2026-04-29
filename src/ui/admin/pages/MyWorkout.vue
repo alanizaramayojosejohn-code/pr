@@ -156,6 +156,13 @@
         </p>
       </div>
     </details>
+
+    <div v-if="isNative" class="dbg-hud" @click="dbgLastErr = null">
+      <div>n#{{ dbgToggleCount }} · rest:{{ activeExId != null ? (pendingRest.get(activeExId) ?? '-') : '-' }}s · run={{ rest.running.value }} · rem={{ rest.remaining.value }}</div>
+      <div>last: ex={{ dbgLastToggle?.exId ?? '-' }} sec={{ dbgLastToggle?.restSec ?? '-' }} doneBefore={{ dbgLastToggle?.completedBefore ?? '-' }}</div>
+      <div>notif={{ dbgNotifPerm }} · vis={{ visState }}</div>
+      <div v-if="dbgLastErr" class="dbg-err">{{ dbgLastErr }}</div>
+    </div>
   </section>
 </template>
 
@@ -167,6 +174,14 @@ import type { ExerciseLog } from "@/composables/useWorkout";
 import { useExercise } from "@/composables/useExercise";
 import type { Exercise } from "@/composables/useExercise";
 import { useNotifications } from "@/composables/useNotifications";
+import { Capacitor } from "@capacitor/core";
+
+const isNative = Capacitor.isNativePlatform();
+const dbgToggleCount = ref(0);
+const dbgLastToggle = ref<{ exId: number; restSec: number; completedBefore: boolean } | null>(null);
+const dbgLastErr = ref<string | null>(null);
+const dbgNotifPerm = ref<string>("?");
+const visState = ref<string>(typeof document !== "undefined" ? document.visibilityState : "?");
 
 const route = useRoute();
 const router = useRouter();
@@ -398,6 +413,7 @@ watch(
 let unbindSW: (() => void) | null = null;
 
 function onVisibilityChange() {
+  visState.value = document.visibilityState;
   if (!session.value || session.value.finished_at) return;
   if (document.visibilityState === "hidden") {
     showOngoingRoutine();
@@ -497,12 +513,20 @@ async function onLogChange(l: ExerciseLog, field: "weight" | "reps") {
 
 async function onToggle(l: ExerciseLog, exerciseId: number, idx: number) {
   void notifications.hapticTick();
-  if (isLogCompleted(l)) {
-    await updateLog(l.id, { rest_seconds_used: null });
+  dbgToggleCount.value += 1;
+  const completedBefore = isLogCompleted(l);
+  dbgLastToggle.value = { exId: exerciseId, restSec: -1, completedBefore };
+  if (completedBefore) {
+    try {
+      await updateLog(l.id, { rest_seconds_used: null });
+    } catch (e) {
+      dbgLastErr.value = `untoggle: ${(e as Error)?.message ?? e}`;
+    }
     return;
   }
   ensureAudio();
   const restSec = pendingRest.get(exerciseId) ?? 60;
+  if (dbgLastToggle.value) dbgLastToggle.value.restSec = restSec;
   const patch: Partial<Pick<ExerciseLog, "weight" | "reps" | "rest_seconds_used">> = {
     rest_seconds_used: restSec,
   };
@@ -514,9 +538,15 @@ async function onToggle(l: ExerciseLog, exerciseId: number, idx: number) {
     const pr = prefill.value.get(exerciseId)?.[idx]?.reps;
     patch.reps = typeof pr === "number" ? pr : 0;
   }
-  await updateLog(l.id, patch);
+  try {
+    await updateLog(l.id, patch);
+  } catch (e) {
+    dbgLastErr.value = `updateLog: ${(e as Error)?.message ?? e}`;
+    return;
+  }
   if (restSec > 0) {
-    await ensureNotifPermission();
+    const granted = await ensureNotifPermission();
+    dbgNotifPerm.value = granted ? "granted" : "denied";
     rest.start(restSec);
   }
 }
@@ -1073,5 +1103,24 @@ async function onAbort() {
 }
 .catalog__item:hover {
   border-color: var(--brand-500);
+}
+.dbg-hud {
+  position: fixed;
+  bottom: 4px;
+  right: 4px;
+  z-index: 9999;
+  background: rgba(0, 0, 0, 0.85);
+  color: #4ade80;
+  font-family: monospace;
+  font-size: 11px;
+  line-height: 1.35;
+  padding: 5px 7px;
+  border-radius: 4px;
+  max-width: 75vw;
+  pointer-events: auto;
+}
+.dbg-err {
+  color: #fca5a5;
+  margin-top: 2px;
 }
 </style>
