@@ -1,0 +1,32 @@
+{
+  "categories": [
+    {
+      "slug": "entrenamiento",
+      "name": "Entrenamiento",
+      "description": "Técnica, programas y cómo armar una rutina",
+      "icon": "dumbbell",
+      "sort": 1
+    },
+    {
+      "slug": "nutricion",
+      "name": "Nutrición",
+      "description": "Qué y cuándo comer para tu objetivo",
+      "icon": "apple",
+      "sort": 2
+    },
+    {
+      "slug": "recuperacion",
+      "name": "Recuperación",
+      "description": "Descanso, sueño y manejo de la fatiga",
+      "icon": "moon",
+      "sort": 3
+    },
+    {
+      "slug": "mindset",
+      "name": "Mindset",
+      "description": "Hábitos y constancia para el largo plazo",
+      "icon": "brain",
+      "sort": 4
+    }
+  ]
+}
