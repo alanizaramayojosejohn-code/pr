@@ -371,6 +371,38 @@ class _ExerciseCardState extends ConsumerState<_ExerciseCard> {
     super.dispose();
   }
 
+  void _handleWeightChanged(int setIdx, String v) {
+    final notifier = ref.read(workoutProvider.notifier);
+    final ex = ref.read(workoutProvider).exercises[widget.exIdx];
+    final oldWeight = ex.sets[setIdx].weight;
+    final newWeight = double.tryParse(v);
+
+    notifier.updateWeight(widget.exIdx, setIdx, newWeight);
+
+    for (var j = setIdx + 1; j < ex.sets.length; j++) {
+      if (!ex.sets[j].done && ex.sets[j].weight == oldWeight) {
+        _weightCtrls[j].text = v;
+        notifier.updateWeight(widget.exIdx, j, newWeight);
+      }
+    }
+  }
+
+  void _handleRepsChanged(int setIdx, String v) {
+    final notifier = ref.read(workoutProvider.notifier);
+    final ex = ref.read(workoutProvider).exercises[widget.exIdx];
+    final oldReps = ex.sets[setIdx].reps;
+    final newReps = int.tryParse(v);
+
+    notifier.updateReps(widget.exIdx, setIdx, newReps);
+
+    for (var j = setIdx + 1; j < ex.sets.length; j++) {
+      if (!ex.sets[j].done && ex.sets[j].reps == oldReps) {
+        _repsCtrls[j].text = v;
+        notifier.updateReps(widget.exIdx, j, newReps);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final ws = ref.watch(workoutProvider);
@@ -505,6 +537,8 @@ class _ExerciseCardState extends ConsumerState<_ExerciseCard> {
               isActive: i == firstPending,
               weightCtrl: _weightCtrls[i],
               repsCtrl: _repsCtrls[i],
+              onWeightChanged: (v) => _handleWeightChanged(i, v),
+              onRepsChanged: (v) => _handleRepsChanged(i, v),
             );
           }),
           const SizedBox(height: 8),
@@ -524,6 +558,8 @@ class _SetRow extends ConsumerWidget {
     required this.isActive,
     required this.weightCtrl,
     required this.repsCtrl,
+    required this.onWeightChanged,
+    required this.onRepsChanged,
   });
   final SetLogState set;
   final int setIdx;
@@ -531,6 +567,8 @@ class _SetRow extends ConsumerWidget {
   final bool isActive;
   final TextEditingController weightCtrl;
   final TextEditingController repsCtrl;
+  final void Function(String) onWeightChanged;
+  final void Function(String) onRepsChanged;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -598,8 +636,7 @@ class _SetRow extends ConsumerWidget {
               controller: weightCtrl,
               hint: '0',
               decimal: true,
-              onChanged: (v) =>
-                  notifier.updateWeight(exIdx, setIdx, double.tryParse(v)),
+              onChanged: onWeightChanged,
             ),
           ),
           const SizedBox(width: 8),
@@ -610,8 +647,7 @@ class _SetRow extends ConsumerWidget {
               controller: repsCtrl,
               hint: '0',
               decimal: false,
-              onChanged: (v) =>
-                  notifier.updateReps(exIdx, setIdx, int.tryParse(v)),
+              onChanged: onRepsChanged,
             ),
           ),
           const SizedBox(width: 8),

@@ -104,11 +104,12 @@ class _MeasurementsPageState extends ConsumerState<MeasurementsPage> {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
 
+    final topPad = MediaQuery.of(context).padding.top + kToolbarHeight + 8;
     return RefreshIndicator(
       onRefresh: () => ref.refresh(measurementsProvider.future),
       child: ListView(
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
+        padding: EdgeInsets.fromLTRB(20, topPad, 20, 32),
         children: [
           // Header
           Row(

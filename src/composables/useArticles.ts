@@ -31,6 +31,20 @@ const rawModules = import.meta.glob("@/content/articles/*.md", {
   import: "default",
 }) as Record<string, string>;
 
+// Images placed in src/assets/img/ — Vite hashes them, so we build a map at compile time
+const imageModules = import.meta.glob("@/assets/img/*", {
+  eager: true,
+  import: "default",
+}) as Record<string, string>;
+
+function resolveImage(cover: string): string {
+  if (!cover) return "";
+  if (cover.startsWith("http") || cover.startsWith("/")) return cover;
+  // Match bare filename like "primeras-pesas.jpg"
+  const entry = Object.entries(imageModules).find(([path]) => path.endsWith(`/${cover}`));
+  return entry ? entry[1] : cover;
+}
+
 function parseFrontmatter(raw: string): { data: Record<string, string>; body: string } {
   const match = /^---\r?\n([\s\S]*?)\r?\n---\r?\n([\s\S]*)$/.exec(raw);
   if (!match) return { data: {}, body: raw };
@@ -63,7 +77,7 @@ const allArticles: Article[] = Object.entries(rawModules)
       title: data.title ?? "Sin título",
       category: data.category ?? "entrenamiento",
       excerpt: data.excerpt ?? "",
-      cover: data.cover ?? "",
+      cover: resolveImage(data.cover ?? ""),
       published: data.published ?? "",
       author: data.author ?? "PR Team",
       body,

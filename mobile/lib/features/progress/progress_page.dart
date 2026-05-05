@@ -2,36 +2,27 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'data/progress_repository.dart';
+import 'widgets/bar_chart.dart';
 import 'widgets/line_chart.dart';
 
 final _weightProv = FutureProvider.autoDispose<List<WeightPoint>>(
     (_) => ProgressRepository().fetchWeightSeries());
 
-final _exerciseOptsProv = FutureProvider.autoDispose<List<ExerciseOption>>(
-    (_) => ProgressRepository().fetchExerciseOptions());
+final _weeklyProv = FutureProvider.autoDispose<List<WeeklyCount>>(
+    (_) => ProgressRepository().fetchWeeklyWorkoutCounts());
 
-final _strengthProv =
-    FutureProvider.autoDispose.family<List<StrengthPoint>, int>(
-        (_, id) => ProgressRepository().fetchStrengthSeries(id));
-
-class ProgressPage extends ConsumerStatefulWidget {
+class ProgressPage extends ConsumerWidget {
   const ProgressPage({super.key});
 
   @override
-  ConsumerState<ProgressPage> createState() => _ProgressPageState();
-}
-
-class _ProgressPageState extends ConsumerState<ProgressPage> {
-  int? _selectedExId;
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final cs = Theme.of(context).colorScheme;
+    final topPad = MediaQuery.of(context).padding.top + kToolbarHeight + 8;
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 80),
+      padding: EdgeInsets.fromLTRB(16, topPad, 16, 80),
       children: [
-        // ── Weight ──────────────────────────────────────────────────────────
+        // ── Peso corporal ────────────────────────────────────────────────────
         _SectionCard(
           title: 'Peso corporal',
           child: ref.watch(_weightProv).when(
@@ -59,78 +50,13 @@ class _ProgressPageState extends ConsumerState<ProgressPage> {
         ),
         const SizedBox(height: 16),
 
-        // ── Strength ─────────────────────────────────────────────────────────
+        // ── Entrenamientos por semana ─────────────────────────────────────────
         _SectionCard(
-          title: 'Progresión de fuerza',
-          child: ref.watch(_exerciseOptsProv).when(
+          title: 'Entrenamientos por semana',
+          child: ref.watch(_weeklyProv).when(
             loading: () => const _LoadingBox(),
             error: (e, _) => _ErrorBox('$e'),
-            data: (opts) {
-              if (opts.isEmpty) {
-                return const _EmptyBox('Sin entrenos registrados');
-              }
-              final selId = _selectedExId ?? opts.first.id;
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  DropdownButtonFormField<int>(
-                    key: ValueKey(selId),
-                    initialValue: selId,
-                    isExpanded: true,
-                    decoration: const InputDecoration(
-                      isDense: true,
-                      border: OutlineInputBorder(),
-                      contentPadding: EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 10),
-                    ),
-                    items: opts
-                        .map((o) => DropdownMenuItem(
-                              value: o.id,
-                              child: Text(
-                                '${o.name} (${o.sessions})',
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ))
-                        .toList(),
-                    onChanged: (v) {
-                      if (v != null) setState(() => _selectedExId = v);
-                    },
-                  ),
-                  const SizedBox(height: 12),
-                  ref.watch(_strengthProv(selId)).when(
-                    loading: () => const _LoadingBox(),
-                    error: (e, _) => _ErrorBox('$e'),
-                    data: (pts) {
-                      if (pts.isEmpty) {
-                        return const _EmptyBox(
-                            'Sin datos para este ejercicio');
-                      }
-                      return LineChart(
-                        series: [
-                          ChartSeries(
-                            label: 'Peso máx',
-                            color: cs.primary,
-                            points: pts
-                                .map((p) => ChartPoint(
-                                    date: p.date, value: p.maxWeight))
-                                .toList(),
-                          ),
-                          ChartSeries(
-                            label: '1RM estimado',
-                            color: cs.tertiary,
-                            points: pts
-                                .map((p) => ChartPoint(
-                                    date: p.date, value: p.best1rm))
-                                .toList(),
-                          ),
-                        ],
-                        unit: 'kg',
-                      );
-                    },
-                  ),
-                ],
-              );
-            },
+            data: (weeks) => WorkoutBarChart(weeks: weeks, color: cs.primary),
           ),
         ),
       ],

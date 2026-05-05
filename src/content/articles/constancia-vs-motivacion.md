@@ -2,7 +2,7 @@
 title: "Constancia: por qué le gana siempre a la motivación"
 category: mindset
 excerpt: "La motivación va y viene. Los hábitos te llevan al gimnasio incluso cuando no tenés ganas."
-cover: ""
+cover: "articulo1.jpeg"
 published: 2026-04-28
 author: "PR Team"
 ---

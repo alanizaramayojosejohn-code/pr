@@ -12231,6 +12231,353 @@
           ]
         }
       ]
+    },
+    {
+      "type": "frame",
+      "id": "ujinf",
+      "x": 6920,
+      "y": 0,
+      "name": "Artículo — Mobile",
+      "clip": true,
+      "width": 390,
+      "height": 844,
+      "fill": "$surface-0",
+      "layout": "vertical",
+      "children": [
+        {
+          "type": "frame",
+          "id": "XypJx",
+          "name": "appbar",
+          "width": "fill_container",
+          "height": 60,
+          "fill": "#0A100C",
+          "gap": 8,
+          "padding": [
+            0,
+            16
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "icon_font",
+              "id": "AyYXG",
+              "name": "backIcon",
+              "width": 22,
+              "height": 22,
+              "iconFontName": "arrow_back_ios_new",
+              "iconFontFamily": "Material Symbols Rounded",
+              "fill": "$text-primary"
+            },
+            {
+              "type": "frame",
+              "id": "UTiba",
+              "name": "appbarSp1",
+              "width": "fill_container",
+              "height": 1
+            },
+            {
+              "type": "text",
+              "id": "wnyv9",
+              "name": "appbarTitle",
+              "fill": "$text-secondary",
+              "content": "Aprender",
+              "fontFamily": "Inter",
+              "fontSize": 13,
+              "fontWeight": "600"
+            },
+            {
+              "type": "frame",
+              "id": "k5Izfm",
+              "name": "appbarSp2",
+              "width": 22,
+              "height": 22
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "E8aYEJ",
+          "name": "hero",
+          "clip": true,
+          "width": "fill_container",
+          "height": 220,
+          "fill": {
+            "type": "image",
+            "enabled": true,
+            "url": "./images/generated-1777862156754.png",
+            "mode": "fill"
+          }
+        },
+        {
+          "type": "frame",
+          "id": "LHjtL",
+          "name": "content",
+          "clip": true,
+          "width": "fill_container",
+          "height": "fill_container",
+          "layout": "vertical",
+          "gap": 14,
+          "padding": [
+            20,
+            20,
+            0,
+            20
+          ],
+          "children": [
+            {
+              "type": "frame",
+              "id": "X6xkAf",
+              "name": "catPill",
+              "fill": "$brand-glow",
+              "cornerRadius": 999,
+              "padding": [
+                4,
+                10
+              ],
+              "children": [
+                {
+                  "type": "text",
+                  "id": "vwTSr",
+                  "name": "catText",
+                  "fill": "$brand-400",
+                  "content": "MINDSET",
+                  "fontFamily": "Inter",
+                  "fontSize": 10,
+                  "fontWeight": "800",
+                  "letterSpacing": 0.8
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "r5By1",
+              "name": "titleText",
+              "fill": "$text-primary",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "Constancia: por qué le gana siempre a la motivación",
+              "lineHeight": 1.25,
+              "fontFamily": "Inter",
+              "fontSize": 24,
+              "fontWeight": "800"
+            },
+            {
+              "type": "frame",
+              "id": "lAtPS",
+              "name": "metaRow",
+              "width": "fill_container",
+              "gap": 6,
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "wYcW0",
+                  "name": "authorCircle",
+                  "width": 24,
+                  "height": 24,
+                  "fill": "$brand-glow",
+                  "cornerRadius": 12,
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "FAx0X",
+                      "name": "authorInitial",
+                      "fill": "$brand-400",
+                      "content": "P",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "800"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "id": "ssNjk",
+                  "name": "authorName",
+                  "fill": "$text-secondary",
+                  "content": "PR Team",
+                  "fontFamily": "Inter",
+                  "fontSize": 12,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "NilLI",
+                  "name": "metaDot1",
+                  "fill": "$text-tertiary",
+                  "content": "·",
+                  "fontFamily": "Inter",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "vHe8x",
+                  "name": "metaDate",
+                  "fill": "$text-tertiary",
+                  "content": "28 abr 2026",
+                  "fontFamily": "Inter",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "QB8Mj",
+                  "name": "metaDot2",
+                  "fill": "$text-tertiary",
+                  "content": "·",
+                  "fontFamily": "Inter",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "YcK9d",
+                  "name": "metaRead",
+                  "fill": "$text-tertiary",
+                  "content": "3 min lectura",
+                  "fontFamily": "Inter",
+                  "fontSize": 12,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "oOPH2",
+              "name": "divider",
+              "width": "fill_container",
+              "height": 1,
+              "fill": "$border-subtle"
+            },
+            {
+              "type": "text",
+              "id": "pEwhV",
+              "name": "body1",
+              "fill": "$text-secondary",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "Casi todos arrancan a entrenar con motivación al palo. Y casi todos abandonan dentro de los primeros 3 meses. ¿Por qué? Porque la motivación es emocional — y como toda emoción, se agota.",
+              "lineHeight": 1.65,
+              "fontFamily": "Inter",
+              "fontSize": 14,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "text",
+              "id": "I27V6",
+              "name": "h2First",
+              "fill": "$text-primary",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "La motivación es un combustible malo",
+              "lineHeight": 1.3,
+              "fontFamily": "Inter",
+              "fontSize": 18,
+              "fontWeight": "700"
+            },
+            {
+              "type": "text",
+              "id": "pj0qJ",
+              "name": "body2",
+              "fill": "$text-secondary",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "Depender de sentirte inspirado para ir al gym es como depender del sol para salir a correr. Funciona algunos días. El resto, no.",
+              "lineHeight": 1.65,
+              "fontFamily": "Inter",
+              "fontSize": 14,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "frame",
+              "id": "FXgNO",
+              "name": "bq",
+              "width": "fill_container",
+              "fill": "#1A2E1A",
+              "cornerRadius": 8,
+              "gap": 12,
+              "padding": [
+                12,
+                14
+              ],
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "ULfE0",
+                  "name": "bqAccent",
+                  "width": 3,
+                  "height": "fill_container",
+                  "fill": "#22C55E",
+                  "cornerRadius": 2
+                },
+                {
+                  "type": "text",
+                  "id": "mrF6A",
+                  "name": "bqText",
+                  "fill": "#86EFAC",
+                  "textGrowth": "fixed-width",
+                  "width": "fill_container",
+                  "content": "Esperar tener ganas para entrenar es como esperar tener ganas de lavarse los dientes: a veces sí, a veces no. Lo hacés igual.",
+                  "lineHeight": 1.5,
+                  "fontFamily": "Inter",
+                  "fontSize": 14,
+                  "fontWeight": "normal",
+                  "fontStyle": "italic"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "UBHD3",
+              "name": "h2b",
+              "fill": "#F8FAFC",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "Cómo construir el hábito",
+              "fontFamily": "Inter",
+              "fontSize": 20,
+              "fontWeight": "bold"
+            },
+            {
+              "type": "text",
+              "id": "yBDrV",
+              "name": "body3",
+              "fill": "#CBD5E1",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "La clave es anclar el entrenamiento a algo que ya hacés: después del trabajo, antes del desayuno, siempre el mismo horario. No es una decisión emocional — es logística. La barrera de entrada baja, el hábito se instala solo.",
+              "lineHeight": 1.6,
+              "fontFamily": "Inter",
+              "fontSize": 14,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "frame",
+              "id": "l9oIs",
+              "name": "divider2",
+              "width": "fill_container",
+              "height": 1,
+              "fill": "#334155"
+            },
+            {
+              "type": "text",
+              "id": "oaFuh",
+              "name": "closing",
+              "fill": "#94A3B8",
+              "textGrowth": "fixed-width",
+              "width": "fill_container",
+              "content": "El gimnasio premia al que aparece. Punto.",
+              "lineHeight": 1.6,
+              "fontFamily": "Inter",
+              "fontSize": 14,
+              "fontWeight": "bold"
+            }
+          ]
+        }
+      ]
     }
   ],
   "themes": {

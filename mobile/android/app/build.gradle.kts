@@ -38,10 +38,26 @@ android {
             signingConfig = signingConfigs.getByName("debug")
         }
     }
+
+    lint {
+        checkReleaseBuilds = false
+    }
 }
 
 flutter {
     source = "../.."
+}
+
+// Workaround: Gradle 8.x immutable-transform race condition on Windows
+// The ART/baseline profile pipeline fails to atomically commit transform
+// cache entries. Disabling the whole pipeline skips startup-profile
+// optimization but has no functional impact on the APK.
+afterEvaluate {
+    tasks.matching {
+        it.name.contains("ArtProfile", ignoreCase = true) ||
+        it.name.contains("BaselineProfile", ignoreCase = true) ||
+        it.name.contains("artProfile", ignoreCase = false)
+    }.configureEach { enabled = false }
 }
 
 dependencies {

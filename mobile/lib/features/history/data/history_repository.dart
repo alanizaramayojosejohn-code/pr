@@ -54,7 +54,9 @@ class HistorySession {
 }
 
 class HistoryRepository {
-  Future<List<HistorySession>> fetchSessions() async {
+  static const pageSize = 8;
+
+  Future<List<HistorySession>> fetchSessions({int page = 0}) async {
     final userId = supabase.auth.currentUser?.id;
     if (userId == null) return [];
 
@@ -63,7 +65,8 @@ class HistoryRepository {
         .select('id, routine_id, started_at, finished_at, routines(name)')
         .eq('user_id', userId)
         .not('finished_at', 'is', null)
-        .order('started_at', ascending: false);
+        .order('started_at', ascending: false)
+        .range(page * pageSize, page * pageSize + pageSize - 1);
 
     final rawSessions = (ss as List).whereType<Map<String, dynamic>>().toList();
     if (rawSessions.isEmpty) return [];

@@ -1,42 +1,114 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'data/history_repository.dart';
 
-final _historyProv = FutureProvider.autoDispose<List<HistorySession>>(
-    (_) => HistoryRepository().fetchSessions());
-
-class HistoryPage extends ConsumerWidget {
+class HistoryPage extends StatefulWidget {
   const HistoryPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return ref.watch(_historyProv).when(
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (e, _) => Center(child: Text('Error: $e')),
-      data: (sessions) {
-        if (sessions.isEmpty) {
-          return Center(
-            child: Text(
-              'Sin entrenos aún',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
+  State<HistoryPage> createState() => _HistoryPageState();
+}
+
+class _HistoryPageState extends State<HistoryPage> {
+  final _repo = HistoryRepository();
+  final _sessions = <HistorySession>[];
+  int _page = 0;
+  bool _loading = true;
+  bool _loadingMore = false;
+  bool _hasMore = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _load(reset: true);
+  }
+
+  Future<void> _load({bool reset = false}) async {
+    if (reset) {
+      setState(() {
+        _loading = true;
+        _page = 0;
+        _sessions.clear();
+        _hasMore = true;
+      });
+    } else {
+      setState(() => _loadingMore = true);
+    }
+
+    try {
+      final page = reset ? 0 : _page;
+      final result = await _repo.fetchSessions(page: page);
+      if (!mounted) return;
+      setState(() {
+        _sessions.addAll(result);
+        _page = page + 1;
+        _hasMore = result.length == HistoryRepository.pageSize;
+        _loading = false;
+        _loadingMore = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _loading = false;
+        _loadingMore = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final topPad = MediaQuery.of(context).padding.top + kToolbarHeight + 8;
+
+    if (_loading) return const Center(child: CircularProgressIndicator());
+
+    if (_sessions.isEmpty) {
+      return RefreshIndicator(
+        onRefresh: () => _load(reset: true),
+        child: ListView(
+          padding: EdgeInsets.fromLTRB(16, topPad, 16, 80),
+          children: [
+            Center(
+              child: Text(
+                'Sin entrenos aún',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color:
+                          Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+              ),
             ),
+          ],
+        ),
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: () => _load(reset: true),
+      child: ListView.builder(
+        padding: EdgeInsets.fromLTRB(16, topPad, 16, 80),
+        itemCount: _sessions.length + (_hasMore ? 1 : 0),
+        itemBuilder: (_, i) {
+          if (i == _sessions.length) {
+            return Padding(
+              padding: const EdgeInsets.only(top: 4, bottom: 8),
+              child: _loadingMore
+                  ? const Center(child: CircularProgressIndicator())
+                  : OutlinedButton(
+                      onPressed: () => _load(),
+                      style: OutlinedButton.styleFrom(
+                        minimumSize: const Size.fromHeight(44),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                      ),
+                      child: const Text('Cargar más'),
+                    ),
+            );
+          }
+          return _SessionCard(
+            session: _sessions[i],
+            onDeleted: () => _load(reset: true),
           );
-        }
-        return RefreshIndicator(
-          onRefresh: () => ref.refresh(_historyProv.future),
-          child: ListView.builder(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 80),
-            itemCount: sessions.length,
-            itemBuilder: (_, i) => _SessionCard(
-              session: sessions[i],
-              onDeleted: () => ref.refresh(_historyProv.future),
-            ),
-          ),
-        );
-      },
+        },
+      ),
     );
   }
 }
@@ -60,51 +132,99 @@ class _SessionCardState extends State<_SessionCard> {
     final s = widget.session;
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
+    final labelStyle = theme.textTheme.labelSmall?.copyWith(
+      color: cs.onSurfaceVariant,
+    );
 
     return Card(
       margin: const EdgeInsets.only(bottom: 10),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          // ── Always-visible summary ──────────────────────────────────────
           InkWell(
-            borderRadius: const BorderRadius.vertical(
-              top: Radius.circular(12),
-              bottom: Radius.circular(12),
+            borderRadius: BorderRadius.vertical(
+              top: const Radius.circular(12),
+              bottom: Radius.circular(_expanded ? 0 : 12),
             ),
             onTap: () => setState(() => _expanded = !_expanded),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: Row(
+              padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
+                  // Routine name + date
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Text(
                           s.routineName ?? 'Sin rutina',
-                          style: theme.textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.w700,
-                          ),
+                          style: theme.textTheme.titleSmall
+                              ?.copyWith(fontWeight: FontWeight.w700),
                         ),
-                        const SizedBox(height: 2),
-                        Text(
-                          _fmtDate(s.startedAt),
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: cs.onSurfaceVariant,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(_fmtDate(s.startedAt), style: labelStyle),
+                    ],
+                  ),
+                  const SizedBox(height: 5),
+                  // Duration + volume
+                  Row(
+                    children: [
+                      Icon(Icons.timer_outlined,
+                          size: 12, color: cs.onSurfaceVariant),
+                      const SizedBox(width: 3),
+                      Text(_fmtDur(s.durationSec), style: labelStyle),
+                      const SizedBox(width: 14),
+                      Icon(Icons.fitness_center,
+                          size: 12, color: cs.onSurfaceVariant),
+                      const SizedBox(width: 3),
+                      Text('${_fmtVol(s.totalVolume)} kg', style: labelStyle),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  // Exercise summary list
+                  ...s.exercises.map(
+                    (g) => Padding(
+                      padding: const EdgeInsets.only(bottom: 4),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              g.exerciseName,
+                              style: theme.textTheme.bodySmall,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 6),
-                        _StatChips(session: s),
-                      ],
+                          const SizedBox(width: 8),
+                          Text(
+                            _setsLabel(g.sets),
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              color: cs.primary,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                  Icon(
-                    _expanded ? Icons.expand_less : Icons.expand_more,
-                    color: cs.onSurfaceVariant,
+                  const SizedBox(height: 4),
+                  // Expand chevron
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: Icon(
+                      _expanded ? Icons.expand_less : Icons.expand_more,
+                      size: 18,
+                      color: cs.onSurfaceVariant,
+                    ),
                   ),
                 ],
               ),
             ),
           ),
+          // ── Expanded detail ─────────────────────────────────────────────
           if (_expanded) ...[
             const Divider(height: 1),
             _SessionDetail(session: s),
@@ -113,39 +233,6 @@ class _SessionCardState extends State<_SessionCard> {
           ],
         ],
       ),
-    );
-  }
-}
-
-// ─── Stat chips ───────────────────────────────────────────────────────────────
-
-class _StatChips extends StatelessWidget {
-  const _StatChips({required this.session});
-  final HistorySession session;
-
-  @override
-  Widget build(BuildContext context) {
-    final style = Theme.of(context).textTheme.labelSmall?.copyWith(
-          color: Theme.of(context).colorScheme.onSurfaceVariant,
-        );
-    return Wrap(
-      spacing: 12,
-      children: [
-        Row(mainAxisSize: MainAxisSize.min, children: [
-          const Icon(Icons.timer_outlined, size: 12),
-          const SizedBox(width: 3),
-          Text(_fmtDur(session.durationSec), style: style),
-        ]),
-        Row(mainAxisSize: MainAxisSize.min, children: [
-          const Icon(Icons.fitness_center, size: 12),
-          const SizedBox(width: 3),
-          Text('${_fmtVol(session.totalVolume)} kg', style: style),
-        ]),
-        Text(
-          '${session.totalSets} series · ${session.exerciseCount} ej',
-          style: style,
-        ),
-      ],
     );
   }
 }
@@ -323,4 +410,19 @@ String _fmtVol(double v) {
 String _fmtNum(double v) {
   if (v == v.truncateToDouble()) return v.toInt().toString();
   return v.toStringAsFixed(1);
+}
+
+// "3×12" — uses most-common rep count across done sets
+String _setsLabel(List<HistoryLog> sets) {
+  final count = sets.length;
+  if (count == 0) return '—';
+  final reps = sets.map((s) => s.reps).whereType<int>().toList();
+  if (reps.isEmpty) return '$count series';
+  final freq = <int, int>{};
+  for (final r in reps) {
+    freq[r] = (freq[r] ?? 0) + 1;
+  }
+  final mostCommon =
+      freq.entries.reduce((a, b) => a.value >= b.value ? a : b).key;
+  return '$count×$mostCommon';
 }

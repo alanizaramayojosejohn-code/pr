@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../theme/app_theme.dart';
 import '../workout/providers.dart';
 import 'data/routines_repository.dart';
+import 'exercise_browser_page.dart';
 import 'providers.dart';
+import 'routine_form_page.dart';
 
 const _dayPills = [
   (value: null, short: '—'),
@@ -19,7 +22,6 @@ const _dayPills = [
 
 class RoutineDetailPage extends ConsumerWidget {
   const RoutineDetailPage({super.key, required this.routineId});
-
   final String routineId;
 
   @override
@@ -27,68 +29,163 @@ class RoutineDetailPage extends ConsumerWidget {
     final asyncRoutines = ref.watch(routinesProvider);
 
     return Scaffold(
+      backgroundColor: kBg,
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.canPop() ? context.pop() : context.go('/rutinas'),
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 18),
+          onPressed: () =>
+              context.canPop() ? context.pop() : context.go('/rutinas'),
         ),
         title: const Text('Rutina'),
+        actions: [
+          asyncRoutines.whenOrNull(
+            data: (routines) {
+              final routine =
+                  routines.where((r) => r.id == routineId).firstOrNull;
+              if (routine == null) return null;
+              return Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.edit_outlined, size: 20),
+                    tooltip: 'Editar',
+                    onPressed: () =>
+                        _showEditDialog(context, ref, routine),
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.delete_outline,
+                        size: 20,
+                        color: Theme.of(context)
+                            .colorScheme
+                            .error
+                            .withValues(alpha: 0.8)),
+                    tooltip: 'Eliminar rutina',
+                    onPressed: () =>
+                        _confirmDelete(context, ref, routine),
+                  ),
+                ],
+              );
+            },
+          ) ?? const SizedBox.shrink(),
+        ],
       ),
-      body: asyncRoutines.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text(e.toString())),
-        data: (routines) {
-          final routine = routines.where((r) => r.id == routineId).firstOrNull;
-          if (routine == null) {
-            return const Center(child: Text('Rutina no encontrada'));
-          }
-          return _RoutineBody(routine: routine);
-        },
+      body: AppGradient(
+        child: asyncRoutines.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (e, _) => Center(child: Text(e.toString())),
+          data: (routines) {
+            final routine =
+                routines.where((r) => r.id == routineId).firstOrNull;
+            if (routine == null) {
+              return const Center(child: Text('Rutina no encontrada'));
+            }
+            return _RoutineBody(routine: routine);
+          },
+        ),
       ),
     );
   }
+
+  Future<void> _showEditDialog(
+      BuildContext context, WidgetRef ref, Routine routine) async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        fullscreenDialog: true,
+        builder: (_) => RoutineFormPage(
+          title: 'Editar rutina',
+          initialName: routine.name,
+          initialDays: routine.daysOfWeek,
+          onSave: (name, days) async {
+            final repo = ref.read(routinesRepositoryProvider);
+            await repo.updateRoutine(routine.id, {
+              'name': name,
+              'days_of_week': days,
+            });
+            ref.invalidate(routinesProvider);
+          },
+        ),
+      ),
+    );
+  }
+
+  Future<void> _confirmDelete(
+      BuildContext context, WidgetRef ref, Routine routine) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('¿Eliminar rutina?'),
+        content: Text(
+            '"${routine.name}" y todos sus ejercicios serán eliminados.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style:
+                TextButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error),
+            child: const Text('Eliminar'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true && context.mounted) {
+      final repo = ref.read(routinesRepositoryProvider);
+      await repo.deleteRoutine(routine.id);
+      ref.invalidate(routinesProvider);
+      if (context.mounted) context.go('/rutinas');
+    }
+  }
 }
+
+// ── Body ──────────────────────────────────────────────────────────────────────
 
 class _RoutineBody extends ConsumerWidget {
   const _RoutineBody({required this.routine});
-
   final Routine routine;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
-    final cs = theme.colorScheme;
-
     return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 40),
       children: [
         Text(
           routine.name,
-          style: theme.textTheme.headlineSmall?.copyWith(
-            fontWeight: FontWeight.w700,
-            letterSpacing: -0.4,
+          style: const TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.w800,
+            letterSpacing: -0.5,
+            color: Color(0xF2FFFFFF),
           ),
         ),
         const SizedBox(height: 4),
         Text(
           _statsLabel(routine),
-          style: theme.textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant),
+          style: const TextStyle(fontSize: 13, color: Color(0x80FFFFFF)),
         ),
         const SizedBox(height: 20),
-        Text(
+        const Text(
           'DÍA',
-          style: theme.textTheme.labelSmall?.copyWith(
-            color: cs.onSurfaceVariant,
-            fontWeight: FontWeight.w800,
-            letterSpacing: 0.8,
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w700,
+            color: Color(0x80FFFFFF),
+            letterSpacing: 1,
           ),
         ),
         const SizedBox(height: 8),
         Row(
           children: [
-            for (final pill in _dayPills) ...[
-              Expanded(child: _DayPill(label: pill.short, active: routine.dayOfWeek == pill.value)),
-              if (pill != _dayPills.last) const SizedBox(width: 6),
+            for (final p in _dayPills) ...[
+              Expanded(
+                child: _DayPill(
+                  label: p.short,
+                  active: routine.daysOfWeek.contains(p.value),
+                ),
+              ),
+              if (p != _dayPills.last) const SizedBox(width: 5),
             ],
           ],
         ),
@@ -105,18 +202,56 @@ class _RoutineBody extends ConsumerWidget {
           style: FilledButton.styleFrom(
             minimumSize: const Size.fromHeight(52),
             shape: const StadiumBorder(),
-            textStyle:
-                const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
           ),
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 28),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text(
+              'EJERCICIOS',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                color: Color(0x80FFFFFF),
+                letterSpacing: 1,
+              ),
+            ),
+            Text(
+              '${routine.exercises.length}',
+              style: const TextStyle(fontSize: 11, color: Color(0x66FFFFFF)),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        FilledButton.icon(
+          onPressed: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) =>
+                  ExerciseBrowserPage(routineId: routine.id),
+            ),
+          ),
+          icon: const Icon(Icons.add_rounded, size: 18),
+          label: const Text('Agregar ejercicio'),
+          style: FilledButton.styleFrom(
+            minimumSize: const Size.fromHeight(48),
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12)),
+            backgroundColor: kSeed.withValues(alpha: 0.15),
+            foregroundColor: kSeed,
+          ),
+        ),
+        const SizedBox(height: 10),
         if (routine.exercises.isEmpty)
           Padding(
-            padding: const EdgeInsets.symmetric(vertical: 24),
+            padding: const EdgeInsets.symmetric(vertical: 16),
             child: Center(
               child: Text(
-                'Esta rutina no tiene ejercicios.',
-                style: theme.textTheme.bodyMedium?.copyWith(color: cs.onSurfaceVariant),
+                'Todavía no hay ejercicios.',
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                    color: Color(0x66FFFFFF), height: 1.6, fontSize: 13),
               ),
             ),
           )
@@ -132,6 +267,8 @@ class _RoutineBody extends ConsumerWidget {
   }
 }
 
+// ── Day pill ──────────────────────────────────────────────────────────────────
+
 class _DayPill extends StatelessWidget {
   const _DayPill({required this.label, required this.active});
   final String label;
@@ -139,62 +276,62 @@ class _DayPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
     return Container(
       height: 36,
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: active ? cs.primary : cs.surfaceContainerHigh,
+        color: active ? kSeed.withValues(alpha: 0.18) : kGlassFill,
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: active ? cs.primary : cs.outlineVariant),
+        border: Border.all(
+          color: active ? kSeed.withValues(alpha: 0.5) : kGlassBorder,
+          width: active ? 1.5 : 1,
+        ),
       ),
       child: Text(
         label,
         style: TextStyle(
           fontWeight: active ? FontWeight.w800 : FontWeight.w600,
-          color: active ? cs.onPrimary : cs.onSurfaceVariant,
+          fontSize: 12,
+          color: active ? kSeed : const Color(0x80FFFFFF),
         ),
       ),
     );
   }
 }
 
-class _ExerciseRow extends StatelessWidget {
+// ── Exercise row ──────────────────────────────────────────────────────────────
+
+class _ExerciseRow extends ConsumerWidget {
   const _ExerciseRow({required this.re});
   final RoutineExercise re;
 
   @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final cs = theme.colorScheme;
+  Widget build(BuildContext context, WidgetRef ref) {
     final imageUrl = re.exercise?.imageUrl;
 
-    return Container(
+    return GlassCard(
+      radius: 12,
       padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: cs.surfaceContainerLow,
-        border: Border.all(color: cs.outlineVariant),
-        borderRadius: BorderRadius.circular(12),
-      ),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Container(
-            width: 48,
-            height: 48,
-            clipBehavior: Clip.antiAlias,
-            decoration: BoxDecoration(
-              color: cs.surfaceContainerHighest,
-              borderRadius: BorderRadius.circular(8),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: Container(
+              width: 48,
+              height: 48,
+              color: kGlassFill,
+              child: imageUrl != null && imageUrl.isNotEmpty
+                  ? Image.network(
+                      imageUrl,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, _, _) => const Icon(
+                          Icons.fitness_center,
+                          color: Color(0x66FFFFFF),
+                          size: 20),
+                    )
+                  : const Icon(Icons.fitness_center,
+                      color: Color(0x66FFFFFF), size: 20),
             ),
-            child: imageUrl != null && imageUrl.isNotEmpty
-                ? Image.network(
-                    imageUrl,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, _, _) =>
-                        Icon(Icons.fitness_center, size: 22, color: cs.onSurfaceVariant),
-                  )
-                : Icon(Icons.fitness_center, size: 22, color: cs.onSurfaceVariant),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -205,32 +342,76 @@ class _ExerciseRow extends StatelessWidget {
                   re.exercise?.name ?? '—',
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xF2FFFFFF),
+                  ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 3),
                 Text(
-                  '${re.targetSets} × ${re.targetReps}  ·  ${re.restSeconds}s',
-                  style: theme.textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant),
+                  [
+                    '${re.targetSets} × ${re.targetReps}',
+                    if (re.defaultWeight != null)
+                      '${_fmtWeight(re.defaultWeight!)} kg',
+                    '${re.restSeconds}s descanso',
+                  ].join('  ·  '),
+                  style: const TextStyle(
+                      fontSize: 11, color: Color(0x80FFFFFF)),
                 ),
               ],
             ),
+          ),
+          IconButton(
+            icon: Icon(Icons.remove_circle_outline,
+                size: 20,
+                color: Colors.white.withValues(alpha: 0.3)),
+            onPressed: () => _removeExercise(context, ref),
           ),
         ],
       ),
     );
   }
+
+  Future<void> _removeExercise(BuildContext context, WidgetRef ref) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('¿Quitar ejercicio?'),
+        content: Text(re.exercise?.name ?? 'Este ejercicio'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: TextButton.styleFrom(
+                foregroundColor:
+                    Theme.of(context).colorScheme.error),
+            child: const Text('Quitar'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true) {
+      final repo = ref.read(routinesRepositoryProvider);
+      await repo.removeExercise(re.id);
+      ref.invalidate(routinesProvider);
+    }
+  }
 }
+
+String _fmtWeight(double w) =>
+    w == w.truncateToDouble() ? w.toInt().toString() : w.toStringAsFixed(1);
 
 String _statsLabel(Routine r) {
   final exCount = r.exercises.length;
   if (exCount == 0) return 'Sin ejercicios';
   final totalSets = r.exercises.fold<int>(0, (a, e) => a + e.targetSets);
-  final totalRest = r.exercises.fold<int>(
-    0,
-    (a, e) => a + e.targetSets * e.restSeconds,
-  );
+  final totalRest =
+      r.exercises.fold<int>(0, (a, e) => a + e.targetSets * e.restSeconds);
   final raw = (totalSets * 30 + totalRest) / 60;
   final minutes = (raw / 5).round() * 5;
-  final shown = minutes < 5 ? 5 : minutes;
-  return '$exCount ej. · ~$shown min';
+  return '$exCount ej. · ~${minutes < 5 ? 5 : minutes} min';
 }

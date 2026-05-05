@@ -23,8 +23,10 @@ class LearnPage extends ConsumerWidget {
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (e, _) => Center(child: Text(e.toString())),
       data: (data) {
+        final topPad =
+            MediaQuery.of(context).padding.top + kToolbarHeight + 8;
         return ListView(
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+          padding: EdgeInsets.fromLTRB(20, topPad, 20, 100),
           children: [
             Text(
               'Aprender',
@@ -67,10 +69,7 @@ class LearnPage extends ConsumerWidget {
               ...data.articles.map(
                 (a) => Padding(
                   padding: const EdgeInsets.only(bottom: 12),
-                  child: _ArticleCard(
-                    article: a,
-                    categoryName: data.findCategory(a.category)?.name ?? a.category,
-                  ),
+                  child: _ArticleCard(article: a, categoryName: ''),
                 ),
               ),
           ],
@@ -130,7 +129,6 @@ class _ArticleCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
-    final initial = article.title.isEmpty ? '?' : article.title[0].toUpperCase();
 
     return Material(
       color: cs.surfaceContainerLow,
@@ -141,42 +139,35 @@ class _ArticleCard extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: () => context.push('/aprender/${article.slug}'),
-        child: Padding(
-          padding: const EdgeInsets.all(14),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 64,
-                height: 64,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: cs.primaryContainer,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  initial,
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.w800,
-                    color: cs.onPrimaryContainer,
-                  ),
-                ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // ── Cover image ──
+            ClipRRect(
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(16),
+                bottomLeft: Radius.circular(16),
               ),
-              const SizedBox(width: 12),
-              Expanded(
+              child: SizedBox(
+                width: 96,
+                height: 110,
+                child: article.cover.isNotEmpty
+                    ? Image.asset(
+                        'assets/img/${article.cover}',
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, _, _) => _CoverFallback(cs: cs),
+                      )
+                    : _CoverFallback(cs: cs),
+              ),
+            ),
+            // ── Body ──
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(
-                      categoryName.toUpperCase(),
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: cs.primary,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 0.8,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
                     Text(
                       article.title,
                       maxLines: 2,
@@ -186,14 +177,14 @@ class _ArticleCard extends StatelessWidget {
                         height: 1.25,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 5),
                     Text(
                       article.excerpt,
-                      maxLines: 2,
+                      maxLines: 3,
                       overflow: TextOverflow.ellipsis,
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: cs.onSurfaceVariant,
-                        height: 1.35,
+                        height: 1.4,
                       ),
                     ),
                     const SizedBox(height: 6),
@@ -206,10 +197,23 @@ class _ArticleCard extends StatelessWidget {
                   ],
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
+    );
+  }
+}
+
+class _CoverFallback extends StatelessWidget {
+  const _CoverFallback({required this.cs});
+  final ColorScheme cs;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: cs.surfaceContainerHigh,
+      child: Icon(Icons.menu_book_rounded, size: 32, color: cs.onSurfaceVariant.withValues(alpha: 0.4)),
     );
   }
 }

@@ -14,6 +14,7 @@ import 'workout_state.dart';
 class WorkoutNotifier extends Notifier<WorkoutState> {
   final _repo = WorkoutRepository();
   Timer? _restTimer;
+  Timer? _elapsedTimer;
 
   @override
   WorkoutState build() {
@@ -21,10 +22,20 @@ class WorkoutNotifier extends Notifier<WorkoutState> {
     ref.onDispose(() {
       WorkoutTimerService.removeTickListener(_onTimerData);
       _restTimer?.cancel();
+      _elapsedTimer?.cancel();
       WorkoutTimerService.stop();
     });
     Future.microtask(_tryRestoreSession);
     return const WorkoutState(status: WorkoutStatus.idle);
+  }
+
+  void _startElapsedTimer() {
+    _elapsedTimer?.cancel();
+    _elapsedTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (state.status == WorkoutStatus.active) {
+        state = state.copyWith(elapsedSeconds: state.elapsedSeconds + 1);
+      }
+    });
   }
 
   Future<void> _tryRestoreSession() async {
@@ -49,23 +60,30 @@ class WorkoutNotifier extends Notifier<WorkoutState> {
           final log = doneLogs[re.exerciseId]?[setNum];
           return SetLogState(
             setNumber: setNum,
-            weight: log?.weight,
+            weight: log?.weight ?? re.defaultWeight,
             reps: log?.reps,
             done: log != null,
-            prevWeight: log?.weight,
+            prevWeight: log?.weight ?? re.defaultWeight,
             prevReps: log?.reps,
           );
         });
         return ExerciseWorkoutState(config: re, sets: sets);
       }).toList();
 
+      final startedAt = DateTime.tryParse(saved.startedAt);
+      final elapsed = startedAt != null
+          ? DateTime.now().difference(startedAt).inSeconds
+          : 0;
+
       state = WorkoutState(
         status: WorkoutStatus.active,
         sessionId: saved.sessionId,
         routineName: routine.name,
         exercises: exercises,
+        elapsedSeconds: elapsed,
       );
 
+      _startElapsedTimer();
       if (!kIsWeb) await WorkoutTimerService.start(routine.name);
     } catch (_) {
       await LocalWorkoutStore.clear();
@@ -74,9 +92,8 @@ class WorkoutNotifier extends Notifier<WorkoutState> {
   }
 
   void _onTimerData(Object data) {
-    if (data is int && state.status == WorkoutStatus.active) {
-      state = state.copyWith(elapsedSeconds: data);
-    }
+    // Foreground service data — used only to keep the notification in sync.
+    // Elapsed time is driven by _elapsedTimer (plain Dart timer) for reliability.
   }
 
   Future<void> start(Routine routine) async {
@@ -92,11 +109,12 @@ class WorkoutNotifier extends Notifier<WorkoutState> {
         final sets = List.generate(re.targetSets, (i) {
           final n = i + 1;
           final p = _pickPrefill(exPrefill, n, i);
+          final weight = p?.weight ?? re.defaultWeight;
           return SetLogState(
             setNumber: n,
-            weight: p?.weight,
+            weight: weight,
             reps: p?.reps,
-            prevWeight: p?.weight,
+            prevWeight: weight,
             prevReps: p?.reps,
           );
         });
@@ -110,6 +128,7 @@ class WorkoutNotifier extends Notifier<WorkoutState> {
         exercises: exercises,
       );
 
+      _startElapsedTimer();
       await WorkoutTimerService.start(routine.name);
       await LocalWorkoutStore.save(
         sessionId: session.id,
@@ -174,6 +193,7 @@ class WorkoutNotifier extends Notifier<WorkoutState> {
       restTimer: () =>
           RestTimerState(totalSeconds: total, remainingSeconds: total),
     );
+    WorkoutTimerService.startRest(total);
     _restTimer = Timer.periodic(const Duration(seconds: 1), (t) {
       final cur = state.restTimer;
       if (cur == null) {
@@ -204,10 +224,12 @@ class WorkoutNotifier extends Notifier<WorkoutState> {
       restTimer: () =>
           RestTimerState(totalSeconds: cur.totalSeconds, remainingSeconds: newRem),
     );
+    WorkoutTimerService.startRest(newRem);
   }
 
   void skipRest() {
     _restTimer?.cancel();
+    WorkoutTimerService.cancelRest();
     state = state.copyWith(restTimer: () => null);
   }
 
@@ -218,12 +240,13 @@ class WorkoutNotifier extends Notifier<WorkoutState> {
 
   Future<void> finish() async {
     _restTimer?.cancel();
+    _elapsedTimer?.cancel();
 
-    final futures = <Future<void>>[];
+    final logFutures = <Future<void>>[];
     for (final ex in state.exercises) {
       for (final s in ex.sets) {
         if (!s.done && (s.weight != null || s.reps != null)) {
-          futures.add(_repo.upsertLog(
+          logFutures.add(_repo.upsertLog(
             sessionId: state.sessionId,
             exerciseId: ex.config.exerciseId,
             setNumber: s.setNumber,
@@ -233,8 +256,23 @@ class WorkoutNotifier extends Notifier<WorkoutState> {
         }
       }
     }
-    await Future.wait(futures);
+    await Future.wait(logFutures);
     await _repo.finishSession(state.sessionId);
+
+    // Persist used weight back to routine so next session pre-fills correctly
+    final routinesRepo = ref.read(routinesRepositoryProvider);
+    final weightFutures = <Future<void>>[];
+    for (final ex in state.exercises) {
+      final firstWeight = ex.sets
+          .firstWhere((s) => s.weight != null, orElse: () => ex.sets.first)
+          .weight;
+      if (firstWeight != null) {
+        weightFutures.add(
+          routinesRepo.updateExerciseDefaultWeight(ex.config.id, firstWeight),
+        );
+      }
+    }
+    await Future.wait(weightFutures);
 
     await WorkoutTimerService.stop();
     await LocalWorkoutStore.clear();
@@ -244,6 +282,7 @@ class WorkoutNotifier extends Notifier<WorkoutState> {
 
   void endSession() {
     _restTimer?.cancel();
+    _elapsedTimer?.cancel();
     WorkoutTimerService.stop();
     LocalWorkoutStore.clear();
     state = const WorkoutState(status: WorkoutStatus.idle);

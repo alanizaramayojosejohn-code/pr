@@ -112,10 +112,9 @@ class ArticlesRepository {
         if (m == null) continue;
         final key = m.group(1) ?? '';
         var value = (m.group(2) ?? '').trim();
-        value = value.replaceAll(RegExp(r'''^["'](.*)["']$'''), r'$1');
-        if (value.startsWith('"') && value.endsWith('"') && value.length >= 2) {
-          value = value.substring(1, value.length - 1);
-        } else if (value.startsWith("'") && value.endsWith("'") && value.length >= 2) {
+        if (value.length >= 2 &&
+            ((value.startsWith('"') && value.endsWith('"')) ||
+             (value.startsWith("'") && value.endsWith("'")))) {
           value = value.substring(1, value.length - 1);
         }
         data[key] = value;

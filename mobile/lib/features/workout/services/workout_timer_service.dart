@@ -8,17 +8,29 @@ void workoutTimerEntryPoint() {
 
 class WorkoutTimerHandler extends TaskHandler {
   int _elapsed = 0;
+  int _restRemaining = 0;
 
   @override
   Future<void> onStart(DateTime timestamp, TaskStarter starter) async {
     _elapsed = 0;
+    _restRemaining = 0;
+  }
+
+  @override
+  void onReceiveData(Object data) {
+    if (data is Map) {
+      final rest = data['rest'];
+      if (rest is int) _restRemaining = rest;
+    }
   }
 
   @override
   void onRepeatEvent(DateTime timestamp) {
     _elapsed++;
+    if (_restRemaining > 0) _restRemaining--;
     _updateNotif();
-    FlutterForegroundTask.sendDataToMain(_elapsed);
+    FlutterForegroundTask.sendDataToMain(
+        {'elapsed': _elapsed, 'restRemaining': _restRemaining});
   }
 
   @override
@@ -27,10 +39,11 @@ class WorkoutTimerHandler extends TaskHandler {
   void _updateNotif() {
     final m = _elapsed ~/ 60;
     final s = _elapsed % 60;
-    FlutterForegroundTask.updateService(
-      notificationText:
-          '${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}',
-    );
+    final elapsed = '${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
+    final text = _restRemaining > 0
+        ? 'Descanso: ${_restRemaining}s  ·  $elapsed'
+        : elapsed;
+    FlutterForegroundTask.updateService(notificationText: text);
   }
 }
 
@@ -83,5 +96,15 @@ class WorkoutTimerService {
   static void removeTickListener(void Function(Object) callback) {
     if (kIsWeb) return;
     FlutterForegroundTask.removeTaskDataCallback(callback);
+  }
+
+  static void startRest(int seconds) {
+    if (kIsWeb) return;
+    FlutterForegroundTask.sendDataToTask({'rest': seconds});
+  }
+
+  static void cancelRest() {
+    if (kIsWeb) return;
+    FlutterForegroundTask.sendDataToTask({'rest': 0});
   }
 }

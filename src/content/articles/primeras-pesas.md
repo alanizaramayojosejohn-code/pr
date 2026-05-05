@@ -2,7 +2,7 @@
 title: "Tus primeras pesas: por dónde empezar"
 category: entrenamiento
 excerpt: "Si nunca tocaste un fierro, esto es lo primero que necesitás saber para no lesionarte y avanzar de verdad."
-cover: ""
+cover: "articulo4.png"
 published: 2026-04-25
 author: "PR Team"
 ---
