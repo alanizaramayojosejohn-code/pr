@@ -1,4 +1,5 @@
 import '../routines/data/routines_repository.dart';
+import 'pr_detector.dart';
 
 enum WorkoutStatus { idle, loading, active, done }
 
@@ -44,18 +45,35 @@ class SetLogState {
 }
 
 class ExerciseWorkoutState {
-  const ExerciseWorkoutState({required this.config, required this.sets});
+  const ExerciseWorkoutState({
+    required this.config,
+    required this.sets,
+    this.restSecondsOverride,
+  });
+
   final RoutineExercise config;
   final List<SetLogState> sets;
+  final int? restSecondsOverride;
 
+  int get effectiveRestSeconds => restSecondsOverride ?? config.restSeconds;
   bool get allDone => sets.every((s) => s.done);
   int get firstPendingIdx => sets.indexWhere((s) => !s.done);
 
   ExerciseWorkoutState withSet(int idx, SetLogState set) {
     final s = [...sets];
     s[idx] = set;
-    return ExerciseWorkoutState(config: config, sets: s);
+    return ExerciseWorkoutState(
+      config: config,
+      sets: s,
+      restSecondsOverride: restSecondsOverride,
+    );
   }
+
+  ExerciseWorkoutState withRest(int seconds) => ExerciseWorkoutState(
+        config: config,
+        sets: sets,
+        restSecondsOverride: seconds,
+      );
 }
 
 class RestTimerState {
@@ -86,6 +104,8 @@ class WorkoutState {
     this.restTimer,
     this.elapsedSeconds = 0,
     this.error,
+    this.prBests = const {},
+    this.pendingPR,
   });
 
   final WorkoutStatus status;
@@ -96,6 +116,8 @@ class WorkoutState {
   final RestTimerState? restTimer;
   final int elapsedSeconds;
   final String? error;
+  final Map<int, ExerciseBests> prBests;
+  final PendingPR? pendingPR;
 
   int get autoActiveExIdx {
     for (var i = 0; i < exercises.length; i++) {
@@ -130,6 +152,8 @@ class WorkoutState {
     RestTimerState? Function()? restTimer,
     int? elapsedSeconds,
     String? Function()? error,
+    Map<int, ExerciseBests>? prBests,
+    PendingPR? Function()? pendingPR,
   }) =>
       WorkoutState(
         status: status ?? this.status,
@@ -140,6 +164,8 @@ class WorkoutState {
         restTimer: restTimer != null ? restTimer() : this.restTimer,
         elapsedSeconds: elapsedSeconds ?? this.elapsedSeconds,
         error: error != null ? error() : this.error,
+        prBests: prBests ?? this.prBests,
+        pendingPR: pendingPR != null ? pendingPR() : this.pendingPR,
       );
 }
 

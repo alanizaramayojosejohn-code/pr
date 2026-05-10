@@ -1,11 +1,13 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../routines/data/routines_repository.dart';
 import '../routines/providers.dart';
 import 'data/workout_repository.dart';
+import 'pr_detector.dart';
 import 'services/local_workout_store.dart';
 import 'services/notification_service.dart';
 import 'services/workout_timer_service.dart';
@@ -15,6 +17,10 @@ class WorkoutNotifier extends Notifier<WorkoutState> {
   final _repo = WorkoutRepository();
   Timer? _restTimer;
   Timer? _elapsedTimer;
+
+  // PR tracking for this session
+  int? _pendingRestSeconds;
+  final _shownPRs = <int, Set<PRType>>{}; // exerciseId → shown PR types
 
   @override
   WorkoutState build() {
@@ -85,6 +91,7 @@ class WorkoutNotifier extends Notifier<WorkoutState> {
 
       _startElapsedTimer();
       if (!kIsWeb) await WorkoutTimerService.start(routine.name);
+      _loadPRBests(routine.exercises.map((e) => e.exerciseId).toList(), saved.sessionId);
     } catch (_) {
       await LocalWorkoutStore.clear();
       state = const WorkoutState(status: WorkoutStatus.idle);
@@ -130,6 +137,8 @@ class WorkoutNotifier extends Notifier<WorkoutState> {
 
       _startElapsedTimer();
       await WorkoutTimerService.start(routine.name);
+      // Load historical bests in background — non-critical
+      _loadPRBests(routine.exercises.map((e) => e.exerciseId).toList(), session.id);
       await LocalWorkoutStore.save(
         sessionId: session.id,
         routineId: routine.id,
@@ -169,11 +178,27 @@ class WorkoutNotifier extends Notifier<WorkoutState> {
     newExercises[exIdx] = newEx;
 
     if (nowDone) {
-      _startRestTimer(ex.config.restSeconds);
-      state = state.copyWith(exercises: newExercises, userActiveExIdx: -1);
+      final pr = _checkPR(ex, set);
+      if (pr != null) {
+        HapticFeedback.heavyImpact();
+        _pendingRestSeconds = ex.effectiveRestSeconds;
+        state = state.copyWith(
+          exercises: newExercises,
+          userActiveExIdx: -1,
+          pendingPR: () => pr,
+        );
+      } else {
+        _startRestTimer(ex.effectiveRestSeconds);
+        state = state.copyWith(exercises: newExercises, userActiveExIdx: -1);
+      }
     } else {
+      _pendingRestSeconds = null;
       _restTimer?.cancel();
-      state = state.copyWith(exercises: newExercises, restTimer: () => null);
+      state = state.copyWith(
+        exercises: newExercises,
+        restTimer: () => null,
+        pendingPR: () => null,
+      );
     }
 
     _repo.upsertLog(
@@ -184,6 +209,66 @@ class WorkoutNotifier extends Notifier<WorkoutState> {
       reps: set.reps,
       restSecondsUsed: nowDone ? ex.config.restSeconds : null,
     );
+  }
+
+  void clearPR() {
+    final pr = state.pendingPR;
+    state = state.copyWith(pendingPR: () => null);
+    if (pr != null) {
+      // Mark all shown PR types so they don't repeat this session
+      final shown = _shownPRs.putIfAbsent(pr.exerciseId, () => {});
+      for (final hit in pr.hits) {
+        shown.add(hit.type);
+      }
+    }
+    if (_pendingRestSeconds != null) {
+      _startRestTimer(_pendingRestSeconds!);
+      _pendingRestSeconds = null;
+    }
+  }
+
+  PendingPR? _checkPR(ExerciseWorkoutState ex, SetLogState set) {
+    final weight = set.weight;
+    final reps = set.reps;
+    if (weight == null || reps == null) return null;
+
+    final exId = ex.config.exerciseId;
+    final bests = state.prBests[exId] ?? const ExerciseBests();
+
+    // Volume from sets already done for this exercise (excluding this one,
+    // which has done=false in ex since we're called before patching)
+    final sessionVolBefore = ex.sets
+        .where((s) => s.done)
+        .fold(0.0, (sum, s) => sum + (s.weight ?? 0) * (s.reps ?? 0));
+
+    final allHits = PRDetector.check(
+      weight: weight,
+      reps: reps,
+      bests: bests,
+      sessionVolumeBeforeSet: sessionVolBefore,
+    );
+
+    // Filter out PR types already celebrated this session for this exercise
+    final shownForEx = _shownPRs[exId] ?? const {};
+    final hits = allHits.where((h) => !shownForEx.contains(h.type)).toList();
+
+    if (hits.isEmpty) return null;
+    return PendingPR(
+      exerciseId: exId,
+      exerciseName: ex.config.exercise?.name ?? 'Ejercicio',
+      hits: hits,
+    );
+  }
+
+  Future<void> _loadPRBests(List<int> exerciseIds, String sessionId) async {
+    try {
+      final bests = await _repo.fetchExerciseBests(exerciseIds, sessionId);
+      if (state.status != WorkoutStatus.idle) {
+        state = state.copyWith(prBests: bests);
+      }
+    } catch (_) {
+      // PR detection is non-critical; ignore errors
+    }
   }
 
   void _startRestTimer(int seconds) {
@@ -242,37 +327,42 @@ class WorkoutNotifier extends Notifier<WorkoutState> {
     _restTimer?.cancel();
     _elapsedTimer?.cancel();
 
+    // Upsert every set unconditionally — done sets may have been saved
+    // fire-and-forget in toggleCheck; non-done sets need saving now.
     final logFutures = <Future<void>>[];
     for (final ex in state.exercises) {
       for (final s in ex.sets) {
-        if (!s.done && (s.weight != null || s.reps != null)) {
-          logFutures.add(_repo.upsertLog(
-            sessionId: state.sessionId,
-            exerciseId: ex.config.exerciseId,
-            setNumber: s.setNumber,
-            weight: s.weight,
-            reps: s.reps,
-          ));
-        }
+        logFutures.add(_repo.upsertLog(
+          sessionId: state.sessionId,
+          exerciseId: ex.config.exerciseId,
+          setNumber: s.setNumber,
+          weight: s.weight,
+          reps: s.reps,
+          restSecondsUsed: s.done ? ex.effectiveRestSeconds : null,
+        ));
       }
     }
     await Future.wait(logFutures);
     await _repo.finishSession(state.sessionId);
 
-    // Persist used weight back to routine so next session pre-fills correctly
-    final routinesRepo = ref.read(routinesRepositoryProvider);
-    final weightFutures = <Future<void>>[];
-    for (final ex in state.exercises) {
-      final firstWeight = ex.sets
-          .firstWhere((s) => s.weight != null, orElse: () => ex.sets.first)
-          .weight;
-      if (firstWeight != null) {
-        weightFutures.add(
-          routinesRepo.updateExerciseDefaultWeight(ex.config.id, firstWeight),
-        );
+    // Persist used weight back to routine so next session pre-fills correctly.
+    // Non-critical — wrap in try/catch so a Supabase RLS or network error here
+    // doesn't prevent the workout from being marked done.
+    try {
+      final routinesRepo = ref.read(routinesRepositoryProvider);
+      final weightFutures = <Future<void>>[];
+      for (final ex in state.exercises) {
+        final firstWeight = ex.sets
+            .firstWhere((s) => s.weight != null, orElse: () => ex.sets.first)
+            .weight;
+        if (firstWeight != null) {
+          weightFutures.add(
+            routinesRepo.updateExerciseDefaultWeight(ex.config.id, firstWeight),
+          );
+        }
       }
-    }
-    await Future.wait(weightFutures);
+      await Future.wait(weightFutures);
+    } catch (_) {}
 
     await WorkoutTimerService.stop();
     await LocalWorkoutStore.clear();
@@ -286,6 +376,25 @@ class WorkoutNotifier extends Notifier<WorkoutState> {
     WorkoutTimerService.stop();
     LocalWorkoutStore.clear();
     state = const WorkoutState(status: WorkoutStatus.idle);
+  }
+
+  void reorderExercises(int oldIndex, int newIndex) {
+    if (oldIndex == newIndex) return;
+    final list = [...state.exercises];
+    if (newIndex > oldIndex) newIndex--;
+    final item = list.removeAt(oldIndex);
+    list.insert(newIndex, item);
+    state = state.copyWith(exercises: list, userActiveExIdx: -1);
+  }
+
+  void updateRestSeconds(int exIdx, int seconds) {
+    if (exIdx >= state.exercises.length) return;
+    final ex = state.exercises[exIdx];
+    _patchExercise(exIdx, ex.withRest(seconds));
+    ref
+        .read(routinesRepositoryProvider)
+        .updateExerciseRest(ex.config.id, seconds)
+        .ignore();
   }
 
   void _patchExercise(int exIdx, ExerciseWorkoutState newEx) {
