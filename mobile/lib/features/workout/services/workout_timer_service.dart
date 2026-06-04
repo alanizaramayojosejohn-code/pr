@@ -9,16 +9,20 @@ void workoutTimerEntryPoint() {
 class WorkoutTimerHandler extends TaskHandler {
   int _elapsed = 0;
   int _restRemaining = 0;
+  String _routineName = '';
 
   @override
   Future<void> onStart(DateTime timestamp, TaskStarter starter) async {
     _elapsed = 0;
     _restRemaining = 0;
+    _routineName = '';
   }
 
   @override
   void onReceiveData(Object data) {
     if (data is Map) {
+      final name = data['routineName'];
+      if (name is String) _routineName = name;
       final rest = data['rest'];
       if (rest is int) _restRemaining = rest;
     }
@@ -36,14 +40,34 @@ class WorkoutTimerHandler extends TaskHandler {
   @override
   Future<void> onDestroy(DateTime timestamp, bool isTimeout) async {}
 
+  @override
+  void onNotificationButtonPressed(String id) {
+    FlutterForegroundTask.sendDataToMain({'action': id});
+  }
+
   void _updateNotif() {
     final m = _elapsed ~/ 60;
     final s = _elapsed % 60;
-    final elapsed = '${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
-    final text = _restRemaining > 0
-        ? 'Descanso: ${_restRemaining}s  ·  $elapsed'
-        : elapsed;
-    FlutterForegroundTask.updateService(notificationText: text);
+    final elapsed =
+        '${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
+
+    final isResting = _restRemaining > 0;
+
+    // El título siempre incluye el cronómetro para que sea visible
+    // incluso con la notificación colapsada.
+    final title = _routineName.isNotEmpty ? '$_routineName · $elapsed' : elapsed;
+    final text =
+        isResting ? 'Descanso: ${_restRemaining}s' : 'Entrenando';
+    final buttons = isResting
+        ? [NotificationButton(id: 'skip_rest', text: 'Siguiente serie')]
+        : [NotificationButton(id: 'complete_set', text: 'Completar serie')];
+
+    // Siempre pasa notificationButtons para que no desaparezcan entre ticks.
+    FlutterForegroundTask.updateService(
+      notificationTitle: title,
+      notificationText: text,
+      notificationButtons: buttons,
+    );
   }
 }
 
@@ -78,8 +102,13 @@ class WorkoutTimerService {
       serviceTypes: [ForegroundServiceTypes.health],
       notificationTitle: routineName,
       notificationText: '00:00',
+      notificationButtons: [
+        NotificationButton(id: 'complete_set', text: 'Completar serie'),
+      ],
       callback: workoutTimerEntryPoint,
     );
+    // Envía el nombre de la rutina al handler para que lo use en el título.
+    FlutterForegroundTask.sendDataToTask({'routineName': routineName});
   }
 
   static Future<void> stop() async {
