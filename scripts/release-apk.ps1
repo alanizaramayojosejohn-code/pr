@@ -72,7 +72,11 @@ $prev = $ErrorActionPreference; $ErrorActionPreference = 'Continue'
 gh release delete $tag --repo $ghRepo --yes --cleanup-tag 2>&1 | Out-Null
 $ErrorActionPreference = $prev
 
-gh release create $tag "${apkSrc}#${apkName}" `
+# Rename APK so the GitHub download URL uses the versioned name
+$apkDest = Join-Path (Split-Path $apkSrc) $apkName
+Copy-Item $apkSrc $apkDest -Force
+
+gh release create $tag $apkDest `
     --repo $ghRepo `
     --title "PR v$versionName" `
     --notes $Notes `
