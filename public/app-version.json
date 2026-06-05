@@ -1,0 +1,10 @@
+﻿{
+    "latest_version":  "1.1.0",
+    "latest_build":  2,
+    "min_supported_build":  1,
+    "apk_url":  "https://github.com/alanizaramayojosejohn-code/pr/releases/download/v1.1.0/pr-1.1.0.apk",
+    "apk_size_mb":  82.3,
+    "sha256":  "1212e6fc869374a4b9d25f7a1f8d45c137e6611944401200fa20a2176619c884",
+    "release_notes_es":  "• Entrenamiento activo: detección de PRs\n• Notificación con cronómetro y botones\n• Dashboard y progreso mejorados",
+    "released_at":  "2026-06-04"
+}
