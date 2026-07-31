@@ -2,8 +2,20 @@
 
     <!-- Foreground service type permission (Android 14+) -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_HEALTH" />
+    <!--
+      Android 14+ rejects a `health` foreground service unless the app also holds
+      one of BODY_SENSORS / ACTIVITY_RECOGNITION / HIGH_SAMPLING_RATE_SENSORS.
+      HIGH_SAMPLING_RATE_SENSORS is install-time (no runtime dialog), so it is the
+      cheapest way to satisfy the prerequisite. Without it startForeground() throws
+      SecurityException and the timer notification never appears.
+    -->
+    <uses-permission android:name="android.permission.HIGH_SAMPLING_RATE_SENSORS" />
     <!-- Runtime notification permission (Android 13+) -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Required for the rest-finished alert's vibration pattern -->
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <!-- Lets the user exempt the timer service from battery optimization -->
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
 
     <application
         android:label="PR"
@@ -41,6 +53,12 @@
             android:foregroundServiceType="health"
             android:exported="false"
             android:stopWithTask="false" />
+
+        <!-- Monochrome small icon for the timer notification. A colour launcher
+             icon renders as a grey blob in the status bar. -->
+        <meta-data
+            android:name="com.alanizjose.pr.NOTIFICATION_ICON"
+            android:resource="@drawable/ic_stat_workout" />
 
         <meta-data
             android:name="flutterEmbedding"

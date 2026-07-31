@@ -1,7 +1,7 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../routines/data/routines_repository.dart';
@@ -15,8 +15,21 @@ import 'workout_state.dart';
 
 class WorkoutNotifier extends Notifier<WorkoutState> {
   final _repo = WorkoutRepository();
-  Timer? _restTimer;
-  Timer? _elapsedTimer;
+
+  /// Un único ticker que recalcula todo contra el reloj. No acumula: si Android
+  /// congela el proceso en segundo plano y se pierden ticks, el siguiente que
+  /// llegue devuelve el valor correcto igualmente.
+  Timer? _ticker;
+  AppLifecycleListener? _lifecycle;
+
+  /// Instantes de referencia. Son la fuente de verdad del cronómetro y del
+  /// descanso; `state.elapsedSeconds` y `state.restTimer` sólo los reflejan.
+  DateTime? _startedAt;
+  DateTime? _restEndsAt;
+
+  /// Si el foreground service no arrancó, el isolate principal tiene que
+  /// encargarse él mismo del aviso de fin de descanso.
+  bool _serviceRunning = false;
 
   // PR tracking for this session
   int? _pendingRestSeconds;
@@ -25,23 +38,67 @@ class WorkoutNotifier extends Notifier<WorkoutState> {
   @override
   WorkoutState build() {
     WorkoutTimerService.addTickListener(_onTimerData);
+    // Al volver del segundo plano los timers del isolate principal pueden haber
+    // estado congelados durante minutos: hay que reengancharlos y ponerse al día.
+    _lifecycle = AppLifecycleListener(onResume: _onResume);
     ref.onDispose(() {
       WorkoutTimerService.removeTickListener(_onTimerData);
-      _restTimer?.cancel();
-      _elapsedTimer?.cancel();
+      _lifecycle?.dispose();
+      _ticker?.cancel();
       WorkoutTimerService.stop();
     });
     Future.microtask(_tryRestoreSession);
     return const WorkoutState(status: WorkoutStatus.idle);
   }
 
-  void _startElapsedTimer() {
-    _elapsedTimer?.cancel();
-    _elapsedTimer = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (state.status == WorkoutStatus.active) {
-        state = state.copyWith(elapsedSeconds: state.elapsedSeconds + 1);
+  void _startTicker() {
+    _ticker?.cancel();
+    _ticker = Timer.periodic(const Duration(seconds: 1), (_) => _syncFromClock());
+  }
+
+  void _onResume() {
+    if (state.status != WorkoutStatus.active) return;
+    _startTicker();
+    _syncFromClock();
+  }
+
+  /// Recalcula cronómetro y descanso desde [_startedAt] / [_restEndsAt].
+  void _syncFromClock() {
+    if (state.status != WorkoutStatus.active) return;
+    final now = DateTime.now();
+
+    final startedAt = _startedAt;
+    final elapsed = startedAt != null
+        ? now.difference(startedAt).inSeconds
+        : state.elapsedSeconds;
+
+    var rest = state.restTimer;
+    final restEndsAt = _restEndsAt;
+    if (restEndsAt != null) {
+      final remaining = restEndsAt.difference(now).inSeconds;
+      if (remaining <= 0) {
+        _restEndsAt = null;
+        rest = null;
+        // Con el servicio vivo el aviso lo lanza él, que no se congela.
+        if (!_serviceRunning) NotificationService.showRestDone();
+      } else {
+        rest = RestTimerState(
+          totalSeconds: rest?.totalSeconds ?? remaining,
+          remainingSeconds: remaining,
+        );
       }
-    });
+    }
+
+    // Esto corre dos veces por segundo (ticker local + tick del servicio); sin
+    // este corte se reconstruiría el estado con valores idénticos.
+    final restChanged = (rest == null) != (state.restTimer == null) ||
+        rest?.remainingSeconds != state.restTimer?.remainingSeconds;
+    if (elapsed == state.elapsedSeconds && !restChanged) return;
+
+    state = state.copyWith(
+      elapsedSeconds: elapsed < 0 ? 0 : elapsed,
+      restTimer: () => rest,
+    );
   }
 
   Future<void> _tryRestoreSession() async {
@@ -67,7 +124,7 @@ class WorkoutNotifier extends Notifier<WorkoutState> {
           return SetLogState(
             setNumber: setNum,
             weight: log?.weight ?? re.defaultWeight,
-            reps: log?.reps,
+            reps: log?.reps ?? re.targetReps,
             done: log != null,
             prevWeight: log?.weight ?? re.defaultWeight,
             prevReps: log?.reps,
@@ -76,21 +133,22 @@ class WorkoutNotifier extends Notifier<WorkoutState> {
         return ExerciseWorkoutState(config: re, sets: sets);
       }).toList();
 
-      final startedAt = DateTime.tryParse(saved.startedAt);
-      final elapsed = startedAt != null
-          ? DateTime.now().difference(startedAt).inSeconds
-          : 0;
+      final startedAt = DateTime.tryParse(saved.startedAt) ?? DateTime.now();
+      _startedAt = startedAt;
+      _restEndsAt = null;
+      final elapsed = DateTime.now().difference(startedAt).inSeconds;
 
       state = WorkoutState(
         status: WorkoutStatus.active,
         sessionId: saved.sessionId,
         routineName: routine.name,
         exercises: exercises,
-        elapsedSeconds: elapsed,
+        elapsedSeconds: elapsed < 0 ? 0 : elapsed,
       );
 
-      _startElapsedTimer();
-      if (!kIsWeb) await WorkoutTimerService.start(routine.name);
+      _startTicker();
+      // El inicio real, no "ahora": el cronómetro debe continuar donde iba.
+      _serviceRunning = await WorkoutTimerService.start(routine.name, startedAt);
       _loadPRBests(routine.exercises.map((e) => e.exerciseId).toList(), saved.sessionId);
     } catch (_) {
       await LocalWorkoutStore.clear();
@@ -99,12 +157,35 @@ class WorkoutNotifier extends Notifier<WorkoutState> {
   }
 
   void _onTimerData(Object data) {
-    // Foreground service data — used only to keep the notification in sync.
-    // Elapsed time is driven by _elapsedTimer (plain Dart timer) for reliability.
+    if (data is! Map) return;
+
+    final action = data['action'];
+    if (action == 'skip_rest') skipRest();
+    if (action == 'complete_set') completeCurrentSet();
+
+    // El servicio manda su tick con el instante de inicio que tiene persistido.
+    // Nos alineamos con él: si Android recreó el servicio, es quien conserva la
+    // referencia buena.
+    final startedAt = data['startedAt'];
+    if (startedAt is int && startedAt > 0) {
+      _startedAt = DateTime.fromMillisecondsSinceEpoch(startedAt);
+    }
+    if (data.containsKey('elapsed')) _syncFromClock();
+  }
+
+  void completeCurrentSet() {
+    if (state.status != WorkoutStatus.active) return;
+    // Durante descanso el botón muestra "Siguiente serie" (skipRest), no este.
+    if (state.restTimer != null) return;
+    final exIdx = state.autoActiveExIdx;
+    if (exIdx < 0 || exIdx >= state.exercises.length) return;
+    final setIdx = state.exercises[exIdx].firstPendingIdx;
+    if (setIdx < 0) return;
+    toggleCheck(exIdx, setIdx);
   }
 
   Future<void> start(Routine routine) async {
-    _restTimer?.cancel();
+    _restEndsAt = null;
     state = WorkoutState(status: WorkoutStatus.loading, routineName: routine.name);
 
     try {
@@ -117,16 +198,22 @@ class WorkoutNotifier extends Notifier<WorkoutState> {
           final n = i + 1;
           final p = _pickPrefill(exPrefill, n, i);
           final weight = p?.weight ?? re.defaultWeight;
+          final reps = p?.reps ?? re.targetReps;
           return SetLogState(
             setNumber: n,
             weight: weight,
-            reps: p?.reps,
+            reps: reps,
             prevWeight: weight,
             prevReps: p?.reps,
           );
         });
         return ExerciseWorkoutState(config: re, sets: sets);
       }).toList();
+
+      // Un único instante para el estado, el servicio y el almacén local: si
+      // cada uno toma su propio DateTime.now() acaban desincronizados.
+      final startedAt = DateTime.now();
+      _startedAt = startedAt;
 
       state = WorkoutState(
         status: WorkoutStatus.active,
@@ -135,16 +222,20 @@ class WorkoutNotifier extends Notifier<WorkoutState> {
         exercises: exercises,
       );
 
-      _startElapsedTimer();
-      await WorkoutTimerService.start(routine.name);
+      _startTicker();
+      // El permiso primero: sin él el servicio arranca sin notificación visible.
+      await NotificationService.requestPermission();
+      _serviceRunning = await WorkoutTimerService.start(routine.name, startedAt);
       // Load historical bests in background — non-critical
       _loadPRBests(routine.exercises.map((e) => e.exerciseId).toList(), session.id);
       await LocalWorkoutStore.save(
         sessionId: session.id,
         routineId: routine.id,
-        startedAt: DateTime.now().toUtc().toIso8601String(),
+        startedAt: startedAt.toUtc().toIso8601String(),
       );
-      await NotificationService.requestPermission();
+      // Se pide una sola vez; es lo que evita que el sistema mate el servicio
+      // a los pocos minutos con la pantalla apagada.
+      await WorkoutTimerService.ensureBatteryExemption();
     } catch (e) {
       state = WorkoutState(status: WorkoutStatus.idle, error: e.toString());
     }
@@ -163,6 +254,14 @@ class WorkoutNotifier extends Notifier<WorkoutState> {
     final ex = state.exercises[exIdx];
     if (setIdx >= ex.sets.length) return;
     final newSet = ex.sets[setIdx].copyWith(reps: () => r);
+    _patchExercise(exIdx, ex.withSet(setIdx, newSet));
+  }
+
+  void updateSetType(int exIdx, int setIdx, SetType type) {
+    if (exIdx >= state.exercises.length) return;
+    final ex = state.exercises[exIdx];
+    if (setIdx >= ex.sets.length) return;
+    final newSet = ex.sets[setIdx].copyWith(setType: type);
     _patchExercise(exIdx, ex.withSet(setIdx, newSet));
   }
 
@@ -193,7 +292,8 @@ class WorkoutNotifier extends Notifier<WorkoutState> {
       }
     } else {
       _pendingRestSeconds = null;
-      _restTimer?.cancel();
+      _restEndsAt = null;
+      WorkoutTimerService.cancelRest();
       state = state.copyWith(
         exercises: newExercises,
         restTimer: () => null,
@@ -272,39 +372,22 @@ class WorkoutNotifier extends Notifier<WorkoutState> {
   }
 
   void _startRestTimer(int seconds) {
-    _restTimer?.cancel();
     final total = seconds > 0 ? seconds : 60;
+    // El descanso también es un instante, no una cuenta atrás incremental.
+    _restEndsAt = DateTime.now().add(Duration(seconds: total));
     state = state.copyWith(
       restTimer: () =>
           RestTimerState(totalSeconds: total, remainingSeconds: total),
     );
     WorkoutTimerService.startRest(total);
-    _restTimer = Timer.periodic(const Duration(seconds: 1), (t) {
-      final cur = state.restTimer;
-      if (cur == null) {
-        t.cancel();
-        return;
-      }
-      final rem = cur.remainingSeconds - 1;
-      if (rem <= 0) {
-        t.cancel();
-        state = state.copyWith(restTimer: () => null);
-        NotificationService.showRestDone();
-      } else {
-        state = state.copyWith(
-          restTimer: () => RestTimerState(
-            totalSeconds: cur.totalSeconds,
-            remainingSeconds: rem,
-          ),
-        );
-      }
-    });
+    _startTicker();
   }
 
   void adjustRest(int delta) {
     final cur = state.restTimer;
     if (cur == null) return;
     final newRem = (cur.remainingSeconds + delta).clamp(5, 600);
+    _restEndsAt = DateTime.now().add(Duration(seconds: newRem));
     state = state.copyWith(
       restTimer: () =>
           RestTimerState(totalSeconds: cur.totalSeconds, remainingSeconds: newRem),
@@ -313,7 +396,7 @@ class WorkoutNotifier extends Notifier<WorkoutState> {
   }
 
   void skipRest() {
-    _restTimer?.cancel();
+    _restEndsAt = null;
     WorkoutTimerService.cancelRest();
     state = state.copyWith(restTimer: () => null);
   }
@@ -324,8 +407,9 @@ class WorkoutNotifier extends Notifier<WorkoutState> {
   }
 
   Future<void> finish() async {
-    _restTimer?.cancel();
-    _elapsedTimer?.cancel();
+    _ticker?.cancel();
+    _restEndsAt = null;
+    _startedAt = null;
 
     // Upsert every set unconditionally — done sets may have been saved
     // fire-and-forget in toggleCheck; non-done sets need saving now.
@@ -365,14 +449,17 @@ class WorkoutNotifier extends Notifier<WorkoutState> {
     } catch (_) {}
 
     await WorkoutTimerService.stop();
+    _serviceRunning = false;
     await LocalWorkoutStore.clear();
 
     state = state.copyWith(status: WorkoutStatus.done, restTimer: () => null);
   }
 
   void endSession() {
-    _restTimer?.cancel();
-    _elapsedTimer?.cancel();
+    _ticker?.cancel();
+    _restEndsAt = null;
+    _startedAt = null;
+    _serviceRunning = false;
     WorkoutTimerService.stop();
     LocalWorkoutStore.clear();
     state = const WorkoutState(status: WorkoutStatus.idle);
