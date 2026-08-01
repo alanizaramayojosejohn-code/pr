@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import '../../theme/app_theme.dart';
 import 'data/routines_repository.dart';
+import 'exercise_config_controls.dart';
 
 // ── Translation helpers ───────────────────────────────────────────────────────
 
@@ -86,13 +86,19 @@ class _ExerciseDetailSheetState extends State<ExerciseDetailSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final ac = AppColors.of(context);
     final bottom = MediaQuery.of(context).padding.bottom;
 
     return Container(
       decoration: BoxDecoration(
-        color: kBg,
+        color: ac.bg,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-        border: Border.all(color: kGlassBorder),
+        boxShadow: [
+          BoxShadow(
+              color: ac.shadowSh, blurRadius: 24, offset: const Offset(0, -8)),
+          BoxShadow(
+              color: ac.shadowHi, blurRadius: 12, offset: const Offset(0, -3)),
+        ],
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -104,22 +110,23 @@ class _ExerciseDetailSheetState extends State<ExerciseDetailSheet> {
               height: 4,
               margin: const EdgeInsets.only(top: 12, bottom: 4),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.2),
+                color: ac.textDisabled.withValues(alpha: 0.4),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
           ),
+
           Flexible(
             child: SingleChildScrollView(
               padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Header: back circle + name
+                  // Header
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      _DetailCircleBtn(
+                      _NeuroCircleBtn(
                         icon: Icons.arrow_back,
                         onTap: () => Navigator.pop(context),
                       ),
@@ -127,8 +134,8 @@ class _ExerciseDetailSheetState extends State<ExerciseDetailSheet> {
                       Expanded(
                         child: Text(
                           widget.exercise.name,
-                          style: const TextStyle(
-                            color: Color(0xF2FFFFFF),
+                          style: TextStyle(
+                            color: ac.textPrimary,
                             fontSize: 20,
                             fontWeight: FontWeight.w700,
                             height: 1.2,
@@ -139,7 +146,6 @@ class _ExerciseDetailSheetState extends State<ExerciseDetailSheet> {
                   ),
                   const SizedBox(height: 4),
 
-                  // Detail sections (fetched async)
                   FutureBuilder<ExerciseDetail>(
                     future: _detailFuture,
                     builder: (ctx, snap) {
@@ -150,25 +156,26 @@ class _ExerciseDetailSheetState extends State<ExerciseDetailSheet> {
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Subtitle: Muscle · Level
+                          // Subtitle
                           if (detail != null)
                             Padding(
-                              padding: const EdgeInsets.only(left: 52, bottom: 12),
+                              padding: const EdgeInsets.only(
+                                  left: 52, bottom: 12),
                               child: Text(
                                 [
                                   _categoryEs(detail.categorySlug),
                                   _levelEs(detail.level),
-                                ].where((s) => s.isNotEmpty).join(' · '),
-                                style: const TextStyle(
-                                  color: Color(0x88FFFFFF),
-                                  fontSize: 13,
-                                ),
+                                ]
+                                    .where((s) => s.isNotEmpty)
+                                    .join(' · '),
+                                style: TextStyle(
+                                    color: ac.textMuted, fontSize: 13),
                               ),
                             )
                           else
                             const SizedBox(height: 12),
 
-                          // GIF section or loading placeholder
+                          // Image
                           if (loading)
                             _LoadingImage()
                           else
@@ -184,7 +191,7 @@ class _ExerciseDetailSheetState extends State<ExerciseDetailSheet> {
                             _ChipsRow(detail: detail),
                           ],
 
-                          // Cómo hacerlo
+                          // How-to
                           if (detail != null &&
                               detail.instructions.isNotEmpty) ...[
                             const SizedBox(height: 16),
@@ -192,54 +199,55 @@ class _ExerciseDetailSheetState extends State<ExerciseDetailSheet> {
                           ],
 
                           const SizedBox(height: 16),
-                          // Divider with tune icon
+
+                          // Divider
                           Row(
                             children: [
                               Expanded(
                                   child: Divider(
-                                      color: kGlassBorder, height: 1)),
+                                      color: ac.dividerColor
+                                          .withValues(alpha: 0.6),
+                                      height: 1)),
                               Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 8),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8),
                                 child: Icon(Icons.tune_rounded,
                                     color: kSeed, size: 14),
                               ),
                               Expanded(
                                   child: Divider(
-                                      color: kGlassBorder, height: 1)),
+                                      color: ac.dividerColor
+                                          .withValues(alpha: 0.6),
+                                      height: 1)),
                             ],
                           ),
                           const SizedBox(height: 16),
 
                           // Config card
-                          Container(
+                          NeuroCard(
+                            radius: 16,
                             padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: kGlassFill,
-                              borderRadius: BorderRadius.circular(14),
-                              border: Border.all(
-                                  color: kSeed.withValues(alpha: 0.3)),
-                            ),
+                            accent: true,
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
                                 Row(children: [
-                                  Icon(Icons.tune_rounded,
+                                  const Icon(Icons.tune_rounded,
                                       color: kSeed, size: 15),
                                   const SizedBox(width: 8),
-                                  const Text(
+                                  Text(
                                     'Configurar para tu rutina',
                                     style: TextStyle(
-                                      color: Color(0xF2FFFFFF),
+                                      color: ac.textPrimary,
                                       fontSize: 13,
                                       fontWeight: FontWeight.w700,
                                     ),
                                   ),
                                 ]),
                                 const SizedBox(height: 16),
-                                _CfgRow(
+                                CfgRow(
                                   label: 'Series',
-                                  child: _DetailStepper(
+                                  child: NeuroStepper(
                                     value: _sets,
                                     min: 1,
                                     max: 20,
@@ -248,9 +256,9 @@ class _ExerciseDetailSheetState extends State<ExerciseDetailSheet> {
                                   ),
                                 ),
                                 const SizedBox(height: 10),
-                                _CfgRow(
+                                CfgRow(
                                   label: 'Repeticiones',
-                                  child: _DetailStepper(
+                                  child: NeuroStepper(
                                     value: _reps,
                                     min: 1,
                                     max: 100,
@@ -259,14 +267,14 @@ class _ExerciseDetailSheetState extends State<ExerciseDetailSheet> {
                                   ),
                                 ),
                                 const SizedBox(height: 10),
-                                _CfgRow(
+                                CfgRow(
                                   label: 'Peso',
-                                  child: _WeightBox(controller: _weightCtrl),
+                                  child: WeightBox(controller: _weightCtrl),
                                 ),
                                 const SizedBox(height: 10),
-                                _CfgRow(
+                                CfgRow(
                                   label: 'Descanso',
-                                  child: _RestBox(
+                                  child: RestBox(
                                     value: _rest,
                                     onChanged: (v) =>
                                         setState(() => _rest = v),
@@ -289,16 +297,23 @@ class _ExerciseDetailSheetState extends State<ExerciseDetailSheet> {
           Container(
             padding: EdgeInsets.fromLTRB(20, 12, 20, 16 + bottom),
             decoration: BoxDecoration(
-              color: kBg,
-              border: Border(top: BorderSide(color: kGlassBorder)),
+              color: ac.bg,
+              border: Border(
+                  top: BorderSide(
+                      color: ac.dividerColor.withValues(alpha: 0.6))),
+              boxShadow: [
+                BoxShadow(
+                    color: ac.shadowHi,
+                    blurRadius: 10,
+                    offset: const Offset(0, -4)),
+              ],
             ),
             child: Row(
               children: [
-                _DetailCircleBtn(
+                _NeuroCircleBtn(
                   icon: Icons.arrow_back,
                   onTap: () => Navigator.pop(context),
                   size: 50,
-                  borderColor: kGlassBorderStrong,
                 ),
                 const SizedBox(width: 10),
                 Expanded(
@@ -313,7 +328,8 @@ class _ExerciseDetailSheetState extends State<ExerciseDetailSheet> {
                       ),
                       onPressed: () {
                         Navigator.pop(context);
-                        final w = double.tryParse(_weightCtrl.text.trim());
+                        final w =
+                            double.tryParse(_weightCtrl.text.trim());
                         widget.onAdd(_sets, _reps, _rest, w);
                       },
                       style: FilledButton.styleFrom(
@@ -343,7 +359,7 @@ class _GifSection extends StatefulWidget {
 
 class _GifSectionState extends State<_GifSection> {
   bool _playing = false;
-  bool _frame = false; // false = url0, true = url1
+  bool _frame = false;
   Timer? _timer;
 
   String? get _activeUrl => _frame ? widget.url1 : widget.url0;
@@ -371,6 +387,7 @@ class _GifSectionState extends State<_GifSection> {
 
   @override
   Widget build(BuildContext context) {
+    final ac = AppColors.of(context);
     final hasUrl0 = widget.url0 != null && widget.url0!.isNotEmpty;
     final hasUrl1 = widget.url1 != null && widget.url1!.isNotEmpty;
 
@@ -388,9 +405,10 @@ class _GifSectionState extends State<_GifSection> {
                   ? Image.network(
                       _activeUrl ?? widget.url0 ?? '',
                       fit: BoxFit.cover,
-                      errorBuilder: (_, _, _) => Container(color: kGlassFill),
+                      errorBuilder: (_, _, _) =>
+                          Container(color: ac.bg),
                     )
-                  : Container(color: kGlassFill),
+                  : Container(color: ac.bg),
             ),
             if (hasUrl1)
               Positioned(
@@ -402,7 +420,7 @@ class _GifSectionState extends State<_GifSection> {
                     width: 36,
                     height: 36,
                     decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.6),
+                      color: Colors.black.withValues(alpha: 0.55),
                       shape: BoxShape.circle,
                       border: Border.all(
                           color: Colors.white.withValues(alpha: 0.2)),
@@ -423,8 +441,9 @@ class _GifSectionState extends State<_GifSection> {
     // Two thumbnails side by side + play button
     return Container(
       decoration: BoxDecoration(
-        color: kGlassFill,
+        color: ac.bg,
         borderRadius: BorderRadius.circular(18),
+        boxShadow: ac.pressed(NeuroSize.sm),
       ),
       clipBehavior: Clip.hardEdge,
       child: Stack(
@@ -436,7 +455,7 @@ class _GifSectionState extends State<_GifSection> {
                 Expanded(child: _Thumb(url: widget.url0!, label: 'Inicio')),
                 Container(
                     width: 1,
-                    color: Colors.black.withValues(alpha: 0.25)),
+                    color: Colors.black.withValues(alpha: 0.2)),
                 Expanded(child: _Thumb(url: widget.url1!, label: 'Fin')),
               ],
             ),
@@ -471,6 +490,7 @@ class _Thumb extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final ac = AppColors.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -480,10 +500,10 @@ class _Thumb extends StatelessWidget {
             url,
             fit: BoxFit.cover,
             errorBuilder: (_, _, _) => Container(
-              color: kGlassFill,
-              child: const Center(
+              color: ac.bg,
+              child: Center(
                 child: Icon(Icons.fitness_center,
-                    color: Color(0x33FFFFFF), size: 32),
+                    color: ac.textDisabled, size: 32),
               ),
             ),
           ),
@@ -493,8 +513,8 @@ class _Thumb extends StatelessWidget {
           child: Text(
             label,
             textAlign: TextAlign.center,
-            style: const TextStyle(
-                color: Color(0x66FFFFFF),
+            style: TextStyle(
+                color: ac.textMuted,
                 fontSize: 11,
                 fontWeight: FontWeight.w500),
           ),
@@ -512,6 +532,7 @@ class _ChipsRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final ac = AppColors.of(context);
     final chips = <String>[
       if (detail.categorySlug != null) _categoryEs(detail.categorySlug),
       if (detail.level != null) _levelEs(detail.level),
@@ -527,11 +548,13 @@ class _ChipsRow extends StatelessWidget {
       children: chips
           .map((c) => Container(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                 decoration: BoxDecoration(
-                  color: kSeed.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: kSeed.withValues(alpha: 0.25)),
+                  color: ac.bg,
+                  borderRadius: BorderRadius.circular(999),
+                  boxShadow: ac.raised(NeuroSize.sm),
+                  border: Border.all(
+                      color: kSeed.withValues(alpha: 0.25), width: 1),
                 ),
                 child: Text(
                   c,
@@ -562,6 +585,7 @@ class _HowToSectionState extends State<_HowToSection> {
 
   @override
   Widget build(BuildContext context) {
+    final ac = AppColors.of(context);
     final all = widget.steps;
     final visible = _expanded ? all : all.take(2).toList();
     final hasMore = all.length > 2 && !_expanded;
@@ -573,10 +597,10 @@ class _HowToSectionState extends State<_HowToSection> {
           children: [
             Icon(Icons.list_alt_rounded, size: 14, color: kSeed),
             const SizedBox(width: 6),
-            const Text(
+            Text(
               'Cómo hacerlo',
               style: TextStyle(
-                color: Color(0xF2FFFFFF),
+                color: ac.textPrimary,
                 fontSize: 13,
                 fontWeight: FontWeight.w700,
               ),
@@ -611,8 +635,8 @@ class _HowToSectionState extends State<_HowToSection> {
                   Expanded(
                     child: Text(
                       e.value,
-                      style: const TextStyle(
-                        color: Color(0xCCFFFFFF),
+                      style: TextStyle(
+                        color: ac.textSecondary,
                         fontSize: 13,
                         height: 1.4,
                       ),
@@ -645,266 +669,52 @@ class _HowToSectionState extends State<_HowToSection> {
 
 class _LoadingImage extends StatelessWidget {
   @override
-  Widget build(BuildContext context) => Container(
-        height: 170,
-        decoration: BoxDecoration(
-          color: kGlassFill,
-          borderRadius: BorderRadius.circular(18),
+  Widget build(BuildContext context) {
+    final ac = AppColors.of(context);
+    return Container(
+      height: 170,
+      decoration: BoxDecoration(
+        color: ac.bg,
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: ac.pressed(NeuroSize.md),
+      ),
+      child: const Center(
+        child: SizedBox(
+          width: 24,
+          height: 24,
+          child: CircularProgressIndicator(strokeWidth: 2),
         ),
-        child: const Center(
-          child: SizedBox(
-            width: 24,
-            height: 24,
-            child: CircularProgressIndicator(strokeWidth: 2),
-          ),
-        ),
-      );
+      ),
+    );
+  }
 }
 
 // ── Shared helper widgets ─────────────────────────────────────────────────────
 
-class _DetailCircleBtn extends StatelessWidget {
-  const _DetailCircleBtn({
+class _NeuroCircleBtn extends StatelessWidget {
+  const _NeuroCircleBtn({
     required this.icon,
     required this.onTap,
     this.size = 40,
-    this.borderColor,
   });
   final IconData icon;
   final VoidCallback onTap;
   final double size;
-  final Color? borderColor;
 
   @override
   Widget build(BuildContext context) {
+    final ac = AppColors.of(context);
     return GestureDetector(
       onTap: onTap,
       child: Container(
         width: size,
         height: size,
         decoration: BoxDecoration(
-          color: kGlassFill,
+          color: ac.bg,
           shape: BoxShape.circle,
-          border: Border.all(color: borderColor ?? kGlassBorder),
+          boxShadow: ac.raised(NeuroSize.sm),
         ),
-        child: Icon(icon, color: const Color(0xF2FFFFFF), size: 18),
-      ),
-    );
-  }
-}
-
-class _CfgRow extends StatelessWidget {
-  const _CfgRow({required this.label, required this.child});
-  final String label;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: Text(
-            label,
-            style: const TextStyle(
-              color: Color(0x99FFFFFF),
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ),
-        child,
-      ],
-    );
-  }
-}
-
-class _DetailStepper extends StatelessWidget {
-  const _DetailStepper({
-    required this.value,
-    required this.min,
-    required this.max,
-    required this.onChanged,
-    this.step = 1,
-  });
-  final int value;
-  final int min;
-  final int max;
-  final int step;
-  final void Function(int) onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.06),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _StepBtn(
-            isPlus: false,
-            onTap: value <= min ? null : () => onChanged(value - step),
-          ),
-          SizedBox(
-            width: 32,
-            child: Text(
-              '$value',
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                color: Color(0xF2FFFFFF),
-                fontSize: 15,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
-          _StepBtn(
-            isPlus: true,
-            onTap: value >= max ? null : () => onChanged(value + step),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _StepBtn extends StatelessWidget {
-  const _StepBtn({required this.isPlus, required this.onTap});
-  final bool isPlus;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 28,
-        height: 28,
-        decoration: BoxDecoration(
-          color: isPlus ? kSeed : Colors.white.withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Icon(
-          isPlus ? Icons.add : Icons.remove,
-          size: 14,
-          color: onTap == null
-              ? Colors.white.withValues(alpha: 0.25)
-              : isPlus
-                  ? Colors.black
-                  : const Color(0xCCFFFFFF),
-        ),
-      ),
-    );
-  }
-}
-
-class _WeightBox extends StatelessWidget {
-  const _WeightBox({required this.controller});
-  final TextEditingController controller;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.06),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          SizedBox(
-            width: 44,
-            child: TextField(
-              controller: controller,
-              keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
-              inputFormatters: [
-                FilteringTextInputFormatter.allow(RegExp(r'[\d.]')),
-              ],
-              style: const TextStyle(
-                color: Color(0xF2FFFFFF),
-                fontSize: 15,
-                fontWeight: FontWeight.w700,
-              ),
-              decoration: const InputDecoration(
-                hintText: '—',
-                hintStyle: TextStyle(color: Color(0x44FFFFFF), fontSize: 15),
-                isDense: true,
-                contentPadding: EdgeInsets.zero,
-                border: InputBorder.none,
-              ),
-              textAlign: TextAlign.right,
-            ),
-          ),
-          const SizedBox(width: 4),
-          const Text(
-            'kg',
-            style: TextStyle(
-              color: Color(0x66FFFFFF),
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _RestBox extends StatelessWidget {
-  const _RestBox({required this.value, required this.onChanged});
-  final int value;
-  final void Function(int) onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.06),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.timer_outlined, color: kSeed, size: 13),
-          const SizedBox(width: 6),
-          GestureDetector(
-            onTap: value > 15 ? () => onChanged(value - 15) : null,
-            child: Icon(
-              Icons.remove,
-              size: 14,
-              color: value > 15
-                  ? const Color(0xCCFFFFFF)
-                  : const Color(0x33FFFFFF),
-            ),
-          ),
-          const SizedBox(width: 8),
-          Text(
-            '$value',
-            style: const TextStyle(
-              color: Color(0xF2FFFFFF),
-              fontSize: 15,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          const SizedBox(width: 4),
-          const Text(
-            'seg',
-            style: TextStyle(
-              color: Color(0x66FFFFFF),
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          const SizedBox(width: 8),
-          GestureDetector(
-            onTap: () => onChanged(value + 15),
-            child: const Icon(Icons.add, size: 14, color: Color(0xCCFFFFFF)),
-          ),
-        ],
+        child: Icon(icon, color: ac.textPrimary, size: 18),
       ),
     );
   }

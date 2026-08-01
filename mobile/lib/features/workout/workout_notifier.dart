@@ -141,6 +141,7 @@ class WorkoutNotifier extends Notifier<WorkoutState> {
       state = WorkoutState(
         status: WorkoutStatus.active,
         sessionId: saved.sessionId,
+        routineId: routine.id,
         routineName: routine.name,
         exercises: exercises,
         elapsedSeconds: elapsed < 0 ? 0 : elapsed,
@@ -218,6 +219,7 @@ class WorkoutNotifier extends Notifier<WorkoutState> {
       state = WorkoutState(
         status: WorkoutStatus.active,
         sessionId: session.id,
+        routineId: routine.id,
         routineName: routine.name,
         exercises: exercises,
       );
@@ -364,7 +366,10 @@ class WorkoutNotifier extends Notifier<WorkoutState> {
     try {
       final bests = await _repo.fetchExerciseBests(exerciseIds, sessionId);
       if (state.status != WorkoutStatus.idle) {
-        state = state.copyWith(prBests: bests);
+        // Se fusiona en vez de reemplazar: al agregar un ejercicio a mitad de
+        // sesión esto se llama solo con su id, y pisar el mapa entero dejaría
+        // sin récords a los demás.
+        state = state.copyWith(prBests: {...state.prBests, ...bests});
       }
     } catch (_) {
       // PR detection is non-critical; ignore errors
@@ -466,12 +471,139 @@ class WorkoutNotifier extends Notifier<WorkoutState> {
   }
 
   void reorderExercises(int oldIndex, int newIndex) {
+    if (newIndex > oldIndex) newIndex--;
     if (oldIndex == newIndex) return;
     final list = [...state.exercises];
-    if (newIndex > oldIndex) newIndex--;
     final item = list.removeAt(oldIndex);
     list.insert(newIndex, item);
     state = state.copyWith(exercises: list, userActiveExIdx: -1);
+    // El orden que dejás entrenando queda para la próxima vez.
+    ref
+        .read(routinesRepositoryProvider)
+        .reorderExercises(list.map((e) => e.config.id).toList())
+        .then((_) => ref.invalidate(routinesProvider))
+        .ignore();
+  }
+
+  /// Agrega un ejercicio a la rutina y lo suma al entreno en curso.
+  Future<void> addExercise(
+    int exerciseId, {
+    required int sets,
+    required int reps,
+    required int rest,
+    double? weight,
+  }) async {
+    if (state.status != WorkoutStatus.active) return;
+    final routineId = state.routineId;
+    if (routineId.isEmpty) return;
+
+    final created = await ref.read(routinesRepositoryProvider).addExercise(
+          routineId,
+          exerciseId,
+          sets: sets,
+          reps: reps,
+          rest: rest,
+          weight: weight,
+        );
+
+    final newSets = List.generate(
+      created.targetSets,
+      (i) => SetLogState(
+        setNumber: i + 1,
+        weight: created.defaultWeight,
+        reps: created.targetReps,
+        prevWeight: created.defaultWeight,
+      ),
+    );
+    state = state.copyWith(
+      exercises: [
+        ...state.exercises,
+        ExerciseWorkoutState(config: created, sets: newSets),
+      ],
+    );
+    _loadPRBests([created.exerciseId], state.sessionId);
+    ref.invalidate(routinesProvider);
+  }
+
+  /// Quita un ejercicio de la rutina y del entreno, borrando lo que ya se
+  /// hubiera registrado de él en esta sesión.
+  Future<void> removeExercise(int exIdx) async {
+    if (exIdx < 0 || exIdx >= state.exercises.length) return;
+    final ex = state.exercises[exIdx];
+
+    final list = [...state.exercises]..removeAt(exIdx);
+    state = state.copyWith(exercises: list, userActiveExIdx: -1);
+
+    await _repo.deleteExerciseLogs(
+      sessionId: state.sessionId,
+      exerciseId: ex.config.exerciseId,
+    );
+    await ref.read(routinesRepositoryProvider).removeExercise(ex.config.id);
+    ref.invalidate(routinesProvider);
+  }
+
+  /// Agrega una serie al final del ejercicio, heredando peso y reps de la
+  /// última, y sube `target_sets` en la rutina.
+  Future<void> addSet(int exIdx) async {
+    if (exIdx < 0 || exIdx >= state.exercises.length) return;
+    final ex = state.exercises[exIdx];
+    final last = ex.sets.isNotEmpty ? ex.sets.last : null;
+
+    final newSets = [
+      ...ex.sets,
+      SetLogState(
+        setNumber: ex.sets.length + 1,
+        weight: last?.weight,
+        reps: last?.reps ?? ex.config.targetReps,
+        prevWeight: last?.prevWeight,
+      ),
+    ];
+    _patchExercise(exIdx, ex.withSets(newSets));
+
+    await ref
+        .read(routinesRepositoryProvider)
+        .updateExercise(ex.config.id, sets: newSets.length);
+    ref.invalidate(routinesProvider);
+  }
+
+  /// Quita una serie y renumera las restantes.
+  ///
+  /// `exercise_logs` se indexa por `set_number`, así que dejar huecos rompería
+  /// la restauración de la sesión —que regenera las filas como 1..target_sets—.
+  /// Por eso se reescriben los registros del ejercicio con la numeración nueva.
+  Future<void> removeSet(int exIdx, int setIdx) async {
+    if (exIdx < 0 || exIdx >= state.exercises.length) return;
+    final ex = state.exercises[exIdx];
+    if (setIdx < 0 || setIdx >= ex.sets.length) return;
+    if (ex.sets.length <= 1) return; // un ejercicio sin series no tiene sentido
+
+    final remaining = [...ex.sets]..removeAt(setIdx);
+    final renumbered = [
+      for (var i = 0; i < remaining.length; i++)
+        remaining[i].copyWith(setNumber: i + 1),
+    ];
+    _patchExercise(exIdx, ex.withSets(renumbered));
+
+    final exerciseId = ex.config.exerciseId;
+    await _repo.deleteExerciseLogs(
+      sessionId: state.sessionId,
+      exerciseId: exerciseId,
+    );
+    for (final s in renumbered.where((s) => s.done)) {
+      await _repo.upsertLog(
+        sessionId: state.sessionId,
+        exerciseId: exerciseId,
+        setNumber: s.setNumber,
+        weight: s.weight,
+        reps: s.reps,
+        restSecondsUsed: ex.effectiveRestSeconds,
+      );
+    }
+
+    await ref
+        .read(routinesRepositoryProvider)
+        .updateExercise(ex.config.id, sets: renumbered.length);
+    ref.invalidate(routinesProvider);
   }
 
   void updateRestSeconds(int exIdx, int seconds) {
@@ -481,6 +613,7 @@ class WorkoutNotifier extends Notifier<WorkoutState> {
     ref
         .read(routinesRepositoryProvider)
         .updateExerciseRest(ex.config.id, seconds)
+        .then((_) => ref.invalidate(routinesProvider))
         .ignore();
   }
 

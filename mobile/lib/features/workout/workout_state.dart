@@ -3,6 +3,8 @@ import 'pr_detector.dart';
 
 enum WorkoutStatus { idle, loading, active, done }
 
+enum SetType { warmup, normal, toFailure, drop }
+
 class SetLogState {
   const SetLogState({
     required this.setNumber,
@@ -11,6 +13,7 @@ class SetLogState {
     this.done = false,
     this.prevWeight,
     this.prevReps,
+    this.setType = SetType.normal,
   });
 
   final int setNumber;
@@ -19,6 +22,7 @@ class SetLogState {
   final bool done;
   final double? prevWeight;
   final int? prevReps;
+  final SetType setType;
 
   String get prevLabel {
     if (prevWeight != null && prevReps != null) {
@@ -30,17 +34,20 @@ class SetLogState {
   }
 
   SetLogState copyWith({
+    int? setNumber,
     double? Function()? weight,
     int? Function()? reps,
     bool? done,
+    SetType? setType,
   }) =>
       SetLogState(
-        setNumber: setNumber,
+        setNumber: setNumber ?? this.setNumber,
         weight: weight != null ? weight() : this.weight,
         reps: reps != null ? reps() : this.reps,
         done: done ?? this.done,
         prevWeight: prevWeight,
         prevReps: prevReps,
+        setType: setType ?? this.setType,
       );
 }
 
@@ -68,6 +75,13 @@ class ExerciseWorkoutState {
       restSecondsOverride: restSecondsOverride,
     );
   }
+
+  ExerciseWorkoutState withSets(List<SetLogState> newSets) =>
+      ExerciseWorkoutState(
+        config: config,
+        sets: newSets,
+        restSecondsOverride: restSecondsOverride,
+      );
 
   ExerciseWorkoutState withRest(int seconds) => ExerciseWorkoutState(
         config: config,
@@ -98,6 +112,7 @@ class WorkoutState {
   const WorkoutState({
     required this.status,
     this.sessionId = '',
+    this.routineId = '',
     this.routineName = '',
     this.exercises = const [],
     this.userActiveExIdx = -1,
@@ -110,6 +125,7 @@ class WorkoutState {
 
   final WorkoutStatus status;
   final String sessionId;
+  final String routineId;
   final String routineName;
   final List<ExerciseWorkoutState> exercises;
   final int userActiveExIdx;
@@ -146,6 +162,7 @@ class WorkoutState {
   WorkoutState copyWith({
     WorkoutStatus? status,
     String? sessionId,
+    String? routineId,
     String? routineName,
     List<ExerciseWorkoutState>? exercises,
     int? userActiveExIdx,
@@ -158,6 +175,7 @@ class WorkoutState {
       WorkoutState(
         status: status ?? this.status,
         sessionId: sessionId ?? this.sessionId,
+        routineId: routineId ?? this.routineId,
         routineName: routineName ?? this.routineName,
         exercises: exercises ?? this.exercises,
         userActiveExIdx: userActiveExIdx ?? this.userActiveExIdx,

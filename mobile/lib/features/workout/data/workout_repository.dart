@@ -107,6 +107,19 @@ class WorkoutRepository {
     return result;
   }
 
+  /// Borra lo registrado de un ejercicio en la sesión. Se usa al quitarlo del
+  /// entreno en curso: si no, sus series quedarían huérfanas en el historial.
+  Future<void> deleteExerciseLogs({
+    required String sessionId,
+    required int exerciseId,
+  }) async {
+    await supabase
+        .from('exercise_logs')
+        .delete()
+        .eq('session_id', sessionId)
+        .eq('exercise_id', exerciseId);
+  }
+
   Future<void> finishSession(String sessionId) async {
     await supabase
         .from('workout_sessions')

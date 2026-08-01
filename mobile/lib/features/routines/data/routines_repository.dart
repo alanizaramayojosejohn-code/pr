@@ -225,7 +225,9 @@ class RoutinesRepository {
 
   // ── Routine-exercise mutations ───────────────────────────────────────────────
 
-  Future<void> addExercise(
+  /// Devuelve la fila creada —con el ejercicio ya embebido— para que quien
+  /// llama pueda insertarla en su estado sin recargar toda la rutina.
+  Future<RoutineExercise> addExercise(
     String routineId,
     int exerciseId, {
     required int sets,
@@ -242,15 +244,58 @@ class RoutinesRepository {
         .maybeSingle();
     final position =
         existing == null ? 1 : ((existing['position'] as num).toInt() + 1);
-    await supabase.from('routine_exercises').insert({
-      'routine_id': routineId,
-      'exercise_id': exerciseId,
-      'position': position,
-      'target_sets': sets,
-      'target_reps': reps,
-      'rest_seconds': rest,
-      if (weight != null) 'default_weight': weight,
-    });
+    final res = await supabase
+        .from('routine_exercises')
+        .insert({
+          'routine_id': routineId,
+          'exercise_id': exerciseId,
+          'position': position,
+          'target_sets': sets,
+          'target_reps': reps,
+          'rest_seconds': rest,
+          if (weight != null) 'default_weight': weight,
+        })
+        .select('*, exercise:Exercise(*)')
+        .single();
+    return RoutineExercise.fromJson(res);
+  }
+
+  /// Actualiza solo los campos indicados. [clearWeight] distingue "no tocar el
+  /// peso" (weight == null) de "dejarlo vacío".
+  Future<void> updateExercise(
+    String routineExerciseId, {
+    int? sets,
+    int? reps,
+    int? rest,
+    double? weight,
+    bool clearWeight = false,
+  }) async {
+    final changes = <String, dynamic>{};
+    if (sets != null) changes['target_sets'] = sets;
+    if (reps != null) changes['target_reps'] = reps;
+    if (rest != null) changes['rest_seconds'] = rest;
+    if (clearWeight) {
+      changes['default_weight'] = null;
+    } else if (weight != null) {
+      changes['default_weight'] = weight;
+    }
+    if (changes.isEmpty) return;
+    await supabase
+        .from('routine_exercises')
+        .update(changes)
+        .eq('id', routineExerciseId);
+  }
+
+  /// Reescribe las posiciones según el orden de [orderedIds] (1-based, igual
+  /// que [addExercise]).
+  Future<void> reorderExercises(List<String> orderedIds) async {
+    await Future.wait([
+      for (var i = 0; i < orderedIds.length; i++)
+        supabase
+            .from('routine_exercises')
+            .update({'position': i + 1})
+            .eq('id', orderedIds[i]),
+    ]);
   }
 
   Future<void> updateExerciseDefaultWeight(
@@ -258,6 +303,14 @@ class RoutinesRepository {
     await supabase
         .from('routine_exercises')
         .update({'default_weight': weight})
+        .eq('id', routineExerciseId);
+  }
+
+  Future<void> updateExerciseRest(
+      String routineExerciseId, int restSeconds) async {
+    await supabase
+        .from('routine_exercises')
+        .update({'rest_seconds': restSeconds})
         .eq('id', routineExerciseId);
   }
 

@@ -13,7 +13,7 @@ import 'providers.dart';
 class _MuscleGroup {
   const _MuscleGroup(this.label, this.muscle, this.icon, this.color);
   final String label;
-  final String? muscle; // null = todos
+  final String? muscle;
   final IconData icon;
   final Color color;
 }
@@ -35,8 +35,23 @@ const _groups = [
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 class ExerciseBrowserPage extends ConsumerStatefulWidget {
-  const ExerciseBrowserPage({super.key, required this.routineId});
+  const ExerciseBrowserPage({
+    super.key,
+    required this.routineId,
+    this.onAdd,
+  });
   final String routineId;
+
+  /// Si se pasa, el alta la resuelve quien abrió la página. Lo usa el entreno
+  /// en curso, que además de guardar en la rutina tiene que sumar el ejercicio
+  /// a la sesión activa.
+  final Future<void> Function(
+    ExerciseLite exercise,
+    int sets,
+    int reps,
+    int rest,
+    double? weight,
+  )? onAdd;
 
   @override
   ConsumerState<ExerciseBrowserPage> createState() =>
@@ -156,19 +171,26 @@ class _ExerciseBrowserPageState extends ConsumerState<ExerciseBrowserPage> {
       backgroundColor: Colors.transparent,
       builder: (_) => ExerciseDetailSheet(
         exercise: ex,
-        onAdd: (sets, reps, rest, weight) {
-          ref
-              .read(routinesRepositoryProvider)
-              .addExercise(widget.routineId, ex.id,
-                  sets: sets, reps: reps, rest: rest, weight: weight)
-              .then((_) {
+        onAdd: (sets, reps, rest, weight) async {
+          final handler = widget.onAdd;
+          if (handler != null) {
+            await handler(ex, sets, reps, rest, weight);
+          } else {
+            await ref.read(routinesRepositoryProvider).addExercise(
+                  widget.routineId,
+                  ex.id,
+                  sets: sets,
+                  reps: reps,
+                  rest: rest,
+                  weight: weight,
+                );
             ref.invalidate(routinesProvider);
-            if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('${ex.name} agregado')),
-              );
-            }
-          });
+          }
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('${ex.name} agregado')),
+            );
+          }
         },
       ),
     );
@@ -176,82 +198,82 @@ class _ExerciseBrowserPageState extends ConsumerState<ExerciseBrowserPage> {
 
   @override
   Widget build(BuildContext context) {
+    final ac = AppColors.of(context);
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.light,
+      value: ac.overlayStyle,
       child: Scaffold(
-        backgroundColor: kBg,
+        backgroundColor: ac.bg,
         appBar: AppBar(
           leading: IconButton(
             icon: Icon(
               _showList ? Icons.arrow_back_ios_new_rounded : Icons.close,
               size: 18,
             ),
-            onPressed: _showList ? _backToCategories : () => Navigator.pop(context),
+            onPressed: _showList
+                ? _backToCategories
+                : () => Navigator.pop(context),
           ),
-          title: _showList
-              ? Text(_selectedGroup?.label ?? 'Resultados')
-              : const Text('Agregar ejercicio'),
+          title: Text(_showList
+              ? (_selectedGroup?.label ?? 'Resultados')
+              : 'Agregar ejercicio'),
           bottom: PreferredSize(
             preferredSize: const Size.fromHeight(60),
             child: Padding(
               padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
-              child: TextField(
-                controller: _searchCtrl,
-                focusNode: _searchFocus,
-                onChanged: _onSearchChanged,
-                style: const TextStyle(color: Color(0xF2FFFFFF), fontSize: 15),
-                decoration: InputDecoration(
-                  hintText: 'Buscar entre 873 ejercicios…',
-                  hintStyle: const TextStyle(color: Color(0x55FFFFFF), fontSize: 14),
-                  prefixIcon: const Icon(Icons.search_rounded,
-                      color: Color(0x88FFFFFF), size: 22),
-                  suffixIcon: _searchCtrl.text.isNotEmpty
-                      ? IconButton(
-                          icon: const Icon(Icons.clear_rounded,
-                              color: Color(0x88FFFFFF), size: 18),
-                          onPressed: () {
-                            _searchCtrl.clear();
-                            _onSearchChanged('');
-                          },
-                        )
-                      : null,
-                  contentPadding:
-                      const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                  fillColor: Colors.white.withValues(alpha: 0.08),
-                  filled: true,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.12)),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.12)),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: kSeed, width: 1.5),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: ac.bg,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: ac.pressed(NeuroSize.sm),
+                ),
+                child: TextField(
+                  controller: _searchCtrl,
+                  focusNode: _searchFocus,
+                  onChanged: _onSearchChanged,
+                  style: TextStyle(color: ac.textPrimary, fontSize: 15),
+                  decoration: InputDecoration(
+                    hintText: 'Buscar entre 873 ejercicios…',
+                    hintStyle:
+                        TextStyle(color: ac.textDisabled, fontSize: 14),
+                    prefixIcon: Icon(Icons.search_rounded,
+                        color: ac.textMuted, size: 22),
+                    suffixIcon: _searchCtrl.text.isNotEmpty
+                        ? IconButton(
+                            icon: Icon(Icons.clear_rounded,
+                                color: ac.textMuted, size: 18),
+                            onPressed: () {
+                              _searchCtrl.clear();
+                              _onSearchChanged('');
+                            },
+                          )
+                        : null,
+                    contentPadding: const EdgeInsets.symmetric(
+                        vertical: 12, horizontal: 16),
+                    border: InputBorder.none,
+                    enabledBorder: InputBorder.none,
+                    focusedBorder: InputBorder.none,
+                    filled: false,
                   ),
                 ),
               ),
             ),
           ),
         ),
-        body: AppGradient(
-          child: _showList ? _buildExerciseList() : _buildCategoryGrid(),
-        ),
+        body: _showList ? _buildExerciseList() : _buildCategoryGrid(),
       ),
     );
   }
 
-  // ── Category grid ───────────────────────────────────────────────────────────
+  // ── Category grid ─────────────────────────────────────────────────────────
 
   Widget _buildCategoryGrid() {
+    final ac = AppColors.of(context);
     return GridView.builder(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 40),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 3,
-        mainAxisSpacing: 12,
-        crossAxisSpacing: 12,
+        mainAxisSpacing: 14,
+        crossAxisSpacing: 14,
         childAspectRatio: 0.95,
       ),
       itemCount: _groups.length,
@@ -259,20 +281,28 @@ class _ExerciseBrowserPageState extends ConsumerState<ExerciseBrowserPage> {
         final g = _groups[i];
         return GestureDetector(
           onTap: () => _selectGroup(g),
-          child: GlassCard(
+          child: Container(
             padding: const EdgeInsets.all(12),
-            radius: 16,
+            decoration: BoxDecoration(
+              color: ac.bg,
+              borderRadius: BorderRadius.circular(18),
+              boxShadow: ac.raised(NeuroSize.md),
+            ),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Container(
-                  width: 44,
-                  height: 44,
+                  width: 46,
+                  height: 46,
                   decoration: BoxDecoration(
-                    color: g.color.withValues(alpha: 0.15),
+                    color: ac.bg,
                     shape: BoxShape.circle,
-                    border: Border.all(
-                        color: g.color.withValues(alpha: 0.35), width: 1.5),
+                    boxShadow: [
+                      ...ac.raised(NeuroSize.sm),
+                      BoxShadow(
+                          color: g.color.withValues(alpha: 0.15),
+                          blurRadius: 14),
+                    ],
                   ),
                   child: Icon(g.icon, color: g.color, size: 20),
                 ),
@@ -281,10 +311,10 @@ class _ExerciseBrowserPageState extends ConsumerState<ExerciseBrowserPage> {
                   g.label,
                   textAlign: TextAlign.center,
                   maxLines: 2,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
-                    color: Color(0xCCFFFFFF),
+                    color: ac.textMedium,
                     height: 1.3,
                   ),
                 ),
@@ -296,9 +326,10 @@ class _ExerciseBrowserPageState extends ConsumerState<ExerciseBrowserPage> {
     );
   }
 
-  // ── Exercise list ───────────────────────────────────────────────────────────
+  // ── Exercise list ──────────────────────────────────────────────────────────
 
   Widget _buildExerciseList() {
+    final ac = AppColors.of(context);
     if (_loading) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -307,25 +338,23 @@ class _ExerciseBrowserPageState extends ConsumerState<ExerciseBrowserPage> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.search_off,
-                size: 48, color: Colors.white.withValues(alpha: 0.2)),
+            Icon(Icons.search_off, size: 48, color: ac.textDisabled),
             const SizedBox(height: 12),
-            Text(
-              'Sin resultados',
-              style: const TextStyle(color: Color(0x66FFFFFF)),
-            ),
+            Text('Sin resultados',
+                style: TextStyle(color: ac.textDisabled)),
           ],
         ),
       );
     }
-    final hasMore = _exercises.length == _offset && _exercises.length >= _pageSize;
+    final hasMore =
+        _exercises.length == _offset && _exercises.length >= _pageSize;
+
     return ListView.builder(
       controller: _scrollCtrl,
-      padding: const EdgeInsets.only(bottom: 40),
-      itemCount: _exercises.length + 1, // +1 for footer
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 40),
+      itemCount: _exercises.length + 1,
       itemBuilder: (context, i) {
         if (i == _exercises.length) {
-          // Footer: loader or "cargar más" or end label
           if (_loadingMore) {
             return const Padding(
               padding: EdgeInsets.all(20),
@@ -334,78 +363,109 @@ class _ExerciseBrowserPageState extends ConsumerState<ExerciseBrowserPage> {
           }
           if (hasMore) {
             return Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-              child: OutlinedButton(
-                onPressed: _loadMore,
-                style: OutlinedButton.styleFrom(
-                  minimumSize: const Size.fromHeight(44),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
-                  side: const BorderSide(color: kGlassBorderStrong),
-                  foregroundColor: const Color(0xCCFFFFFF),
+              padding: const EdgeInsets.only(top: 8),
+              child: GestureDetector(
+                onTap: _loadMore,
+                child: Container(
+                  height: 44,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: ac.bg,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: ac.raised(NeuroSize.sm),
+                  ),
+                  child: Text(
+                    'Cargar más (${_exercises.length} cargados)',
+                    style: TextStyle(
+                        color: ac.textSecondary,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13),
+                  ),
                 ),
-                child: Text('Cargar más (${_exercises.length} cargados)'),
               ),
             );
           }
           return Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.symmetric(vertical: 16),
             child: Center(
               child: Text(
                 '${_exercises.length} ejercicio${_exercises.length == 1 ? '' : 's'}',
-                style: const TextStyle(
-                    color: Color(0x44FFFFFF), fontSize: 12),
+                style: TextStyle(color: ac.textDisabled, fontSize: 12),
               ),
             ),
           );
         }
 
         final ex = _exercises[i];
-        return ListTile(
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-          leading: ClipRRect(
-            borderRadius: BorderRadius.circular(8),
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 10),
+          child: GestureDetector(
+            onTap: () => _pickExercise(ex),
             child: Container(
-              width: 48,
-              height: 48,
-              color: Colors.white.withValues(alpha: 0.06),
-              child: ex.imageUrl != null && ex.imageUrl!.isNotEmpty
-                  ? Image.network(
-                      ex.imageUrl!,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, _, _) => const Icon(
-                          Icons.fitness_center,
-                          color: Color(0x66FFFFFF),
-                          size: 20),
-                    )
-                  : const Icon(Icons.fitness_center,
-                      color: Color(0x66FFFFFF), size: 20),
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: ac.bg,
+                borderRadius: BorderRadius.circular(14),
+                boxShadow: ac.raised(NeuroSize.sm),
+              ),
+              child: Row(
+                children: [
+                  // Thumbnail
+                  Container(
+                    width: 52,
+                    height: 52,
+                    decoration: BoxDecoration(
+                      color: ac.bg,
+                      borderRadius: BorderRadius.circular(10),
+                      boxShadow: ac.pressed(NeuroSize.sm),
+                    ),
+                    clipBehavior: Clip.hardEdge,
+                    child: ex.imageUrl != null && ex.imageUrl!.isNotEmpty
+                        ? Image.network(
+                            ex.imageUrl!,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, _, _) => Icon(
+                                Icons.fitness_center,
+                                color: ac.textDisabled,
+                                size: 22),
+                          )
+                        : Icon(Icons.fitness_center,
+                            color: ac.textDisabled, size: 22),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      ex.name,
+                      style: TextStyle(
+                        color: ac.textPrimary,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  // Add button
+                  Container(
+                    width: 34,
+                    height: 34,
+                    decoration: BoxDecoration(
+                      color: ac.bg,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        ...ac.raised(NeuroSize.sm),
+                        BoxShadow(
+                            color: kSeed.withValues(alpha: 0.12),
+                            blurRadius: 12),
+                      ],
+                    ),
+                    child: const Icon(Icons.add, size: 16, color: kSeed),
+                  ),
+                ],
+              ),
             ),
           ),
-          title: Text(
-            ex.name,
-            style: const TextStyle(
-              color: Color(0xF2FFFFFF),
-              fontWeight: FontWeight.w500,
-              fontSize: 14,
-            ),
-          ),
-          trailing: IconButton(
-            icon: Icon(
-              Icons.add_circle_outline_rounded,
-              color: kSeed.withValues(alpha: 0.8),
-              size: 26,
-            ),
-            onPressed: () => _pickExercise(ex),
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(),
-          ),
-          onTap: () => _pickExercise(ex),
         );
       },
     );
   }
 }
-
-
