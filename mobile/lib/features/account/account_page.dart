@@ -6,7 +6,6 @@ import '../../auth/auth_providers.dart';
 import '../../auth/profile.dart';
 import '../../supabase/client.dart';
 import '../../theme/app_theme.dart';
-import '../../theme/theme_notifier.dart';
 import '../links/link_requests_section.dart';
 import '../links/link_search_sheet.dart';
 import '../links/providers.dart';
@@ -17,7 +16,6 @@ class AccountPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final session = ref.watch(currentSessionProvider);
-    final themeMode = ref.watch(themeModeProvider);
     final isInstructor = ref.watch(isInstructorProvider);
     final ac = AppColors.of(context);
 
@@ -82,57 +80,6 @@ class AccountPage extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 28),
-
-            // ── Apariencia ──────────────────────────────────────────────────
-            _SectionLabel('APARIENCIA'),
-            const SizedBox(height: 8),
-            GlassCard(
-              radius: 14,
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Tema',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: ac.textSecondary,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  SegmentedButton<ThemeMode>(
-                    style: SegmentedButton.styleFrom(
-                      minimumSize: const Size.fromHeight(40),
-                    ),
-                    segments: const [
-                      ButtonSegment(
-                        value: ThemeMode.light,
-                        icon: Icon(Icons.light_mode_outlined),
-                        label: Text('Claro'),
-                      ),
-                      ButtonSegment(
-                        value: ThemeMode.system,
-                        icon: Icon(Icons.brightness_auto_outlined),
-                        label: Text('Sistema'),
-                      ),
-                      ButtonSegment(
-                        value: ThemeMode.dark,
-                        icon: Icon(Icons.dark_mode_outlined),
-                        label: Text('Oscuro'),
-                      ),
-                    ],
-                    selected: {themeMode},
-                    onSelectionChanged: (set) {
-                      if (set.isNotEmpty) {
-                        ref.read(themeModeProvider.notifier).setMode(set.first);
-                      }
-                    },
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 20),
 
             // ── Instructor ──────────────────────────────────────────────────
             if (isInstructor) ...[

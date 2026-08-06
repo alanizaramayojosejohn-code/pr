@@ -8,6 +8,7 @@ import '../auth/profile.dart';
 import '../features/updater/update_dialog.dart';
 import '../features/updater/update_service.dart';
 import '../theme/app_theme.dart';
+import '../theme/theme_notifier.dart';
 
 class _Tab {
   const _Tab(this.path, this.icon, this.activeIcon, this.label);
@@ -118,6 +119,8 @@ class _NeuroAppBar extends StatelessWidget implements PreferredSizeWidget {
               children: [
                 _BrandMark(),
                 const Spacer(),
+                const _ThemeToggle(),
+                const SizedBox(width: 10),
                 if (isInstructor) ...[
                   GestureDetector(
                     onTap: () => context.push('/instructor'),
@@ -196,6 +199,122 @@ class _BrandMark extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+// ── Theme toggle ──────────────────────────────────────────────────────────────
+
+class _ThemeOption {
+  const _ThemeOption(this.mode, this.icon, this.label);
+  final ThemeMode mode;
+  final IconData icon;
+  final String label;
+}
+
+const _themeOptions = <_ThemeOption>[
+  _ThemeOption(ThemeMode.light, Icons.light_mode_outlined, 'Claro'),
+  _ThemeOption(ThemeMode.system, Icons.brightness_auto_outlined, 'Sistema'),
+  _ThemeOption(ThemeMode.dark, Icons.dark_mode_outlined, 'Oscuro'),
+];
+
+/// Un toque alterna claro/oscuro; mantener presionado abre las tres opciones
+/// (incluida "Sistema", que antes vivía en Cuenta › Apariencia).
+class _ThemeToggle extends ConsumerWidget {
+  const _ThemeToggle();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final ac = AppColors.of(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Semantics(
+      button: true,
+      label: isDark ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro',
+      child: GestureDetector(
+        onTap: () => ref
+            .read(themeModeProvider.notifier)
+            .setMode(isDark ? ThemeMode.light : ThemeMode.dark),
+        onLongPress: () => _showThemeSheet(context),
+        child: Container(
+          width: 36,
+          height: 36,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: ac.bg,
+            boxShadow: ac.raised(NeuroSize.sm),
+          ),
+          alignment: Alignment.center,
+          child: Icon(
+            isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
+            size: 18,
+            color: kSeed,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+Future<void> _showThemeSheet(BuildContext context) {
+  return showModalBottomSheet<void>(
+    context: context,
+    backgroundColor: AppColors.of(context).bg,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+    ),
+    builder: (_) => const _ThemeModeSheet(),
+  );
+}
+
+class _ThemeModeSheet extends ConsumerWidget {
+  const _ThemeModeSheet();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final ac = AppColors.of(context);
+    final current = ref.watch(themeModeProvider);
+
+    return SafeArea(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const SizedBox(height: 10),
+          Container(
+            width: 36,
+            height: 4,
+            decoration: BoxDecoration(
+              color: ac.textDisabled,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const SizedBox(height: 14),
+          for (final option in _themeOptions)
+            ListTile(
+              leading: Icon(
+                option.icon,
+                size: 20,
+                color: option.mode == current ? kSeed : ac.textSecondary,
+              ),
+              title: Text(
+                option.label,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: ac.textPrimary,
+                ),
+              ),
+              trailing: option.mode == current
+                  ? const Icon(Icons.check_rounded, size: 18, color: kSeed)
+                  : null,
+              onTap: () {
+                ref.read(themeModeProvider.notifier).setMode(option.mode);
+                Navigator.of(context).pop();
+              },
+            ),
+          const SizedBox(height: 8),
+        ],
+      ),
     );
   }
 }
