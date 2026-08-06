@@ -1,0 +1,128 @@
+CAPACIDAD Y LÍMITES — SUPABASE FREE PLAN
+PR Gym Tracker
+Fecha: 2026-05-07
+========================================
+
+
+LÍMITES DEL PLAN GRATUITO DE SUPABASE
+--------------------------------------
+  Base de datos   : 500 MB
+  Storage         : 1 GB
+  Bandwidth       : 5 GB / mes
+  Auth MAU        : 50,000 usuarios activos/mes
+  Conexiones DB   : 60 (via pooler)
+
+
+CONSUMO POR USUARIO POR SESIÓN DE ENTRENAMIENTO
+-------------------------------------------------
+  Acción                                  Queries aprox.
+  -------------------------------------------------------
+  Home + rutinas + dashboard              ~5
+  Iniciar sesión (prefill + insert)       ~3
+  Cada serie tildada (upsert log)          1 por serie
+  Finalizar (upsert all + finish + weights) ~25
+  Historia / progreso                     ~4
+  TOTAL por entreno                       ~50 queries
+
+  Datos escritos por entreno (5 ejercicios × 3 series):
+    - 1 fila en workout_sessions  ≈ 200 bytes
+    - 15 filas en exercise_logs   ≈ 3,000 bytes
+    - Total                       ≈ 3.2 KB por sesión
+
+
+CAPACIDAD SIN ESTRATEGIA DE RETENCIÓN
+---------------------------------------
+  Datos por usuario activo (4 entrenamientos/semana):
+    Año 1 : ~0.65 MB
+    Año 2 : ~1.30 MB
+    Año 3 : ~1.95 MB
+
+  Usuarios que caben en 500 MB:
+    Año 1 : ~700 usuarios
+    Año 2 : ~350 usuarios
+    Año 3 : ~230 usuarios
+
+  Cuello de botella: tamaño de base de datos.
+
+
+CAPACIDAD CON RETENCIÓN DE 3 MESES (RECOMENDADO)
+--------------------------------------------------
+  Estado estable por usuario:
+    4 entrenamientos/semana × 13 semanas = 52 sesiones
+    52 sesiones × 3.2 KB = ~166 KB por usuario (fijo, no crece)
+
+  Usuarios que caben en 500 MB: ~2,800 (estado estable)
+
+  Comparativa:
+    Estrategia              MB/usuario   Usuarios en 500 MB
+    --------------------------------------------------------
+    Sin borrado (año 1)     0.65 MB      ~700
+    Sin borrado (año 2)     1.30 MB      ~350
+    Retención 3 meses       0.17 MB      ~2,800  ✓
+
+  Cuello de botella nuevo: bandwidth (imágenes de ejercicios).
+  Límite bandwidth (~1.5-3 MB/usuario activo/mes):
+    5,000 MB / 2 MB = ~2,500 usuarios activos/mes
+
+
+ESTIMADOS PRÁCTICOS CON RETENCIÓN DE 3 MESES
+---------------------------------------------
+  Usuarios registrados (DB)  : hasta ~2,800
+  Usuarios activos / mes     : hasta ~1,500
+  Usuarios activos / día     : hasta ~300
+  Auth MAU                   : no es el problema (límite: 50,000)
+
+
+IMPACTO EN FEATURES DE LA APP
+-------------------------------
+  Feature                Impacto con retención 3 meses
+  -------------------------------------------------------
+  Historia               OK — muestra solo últimos 3 meses (es el objetivo)
+  Prefill de pesos       OK — usa sesión más reciente (siempre < 3 meses)
+  Bar chart semanal      OK — ya tiene cutoff de 12 semanas en el código
+  Streak (racha)         ATENCIÓN — si alguien supera 90 días consecutivos
+                                    el contador se rompería (caso muy raro)
+  Total días entrenados  ATENCIÓN — mostraría total de últimos 3 meses,
+                                    no histórico completo
+
+
+IMPLEMENTACIÓN — CRON JOB EN SUPABASE
+---------------------------------------
+  Pegar en el SQL Editor de Supabase (una sola vez):
+
+    -- Habilitar pg_cron
+    create extension if not exists pg_cron;
+
+    -- Cron job: borrar datos > 3 meses, todos los días a las 3 AM UTC
+    select cron.schedule(
+      'cleanup-old-workout-data',
+      '0 3 * * *',
+      $$
+        delete from exercise_logs
+        where session_id in (
+          select id from workout_sessions
+          where finished_at < now() - interval '3 months'
+        );
+
+        delete from workout_sessions
+        where finished_at < now() - interval '3 months';
+      $$
+    );
+
+  Para verificar que está activo:
+    select * from cron.job;
+
+  Para desactivar si se necesita:
+    select cron.unschedule('cleanup-old-workout-data');
+
+
+NOTAS ADICIONALES
+------------------
+  - El catálogo de ejercicios (873 ejercicios con imágenes) ocupa ~10-20 MB
+    en la DB y ~87 MB en Storage. Es fijo, no crece con usuarios.
+  - Las imágenes se sirven desde el CDN de Supabase Storage; después del
+    primer acceso quedan cacheadas y reducen el consumo de bandwidth.
+  - Para un gym privado o grupo pequeño (10-50 usuarios), el plan gratuito
+    es suficiente por años sin necesitar ninguna estrategia de retención.
+  - Si en el futuro se agrega historial de peso corporal (body_measurements),
+    ese consumo es marginal (1 fila/día ≈ 50 bytes/día/usuario).

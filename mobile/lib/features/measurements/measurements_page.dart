@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../theme/app_theme.dart';
 import 'data/measurements_repository.dart';
 import 'providers.dart';
 
@@ -48,9 +49,7 @@ class _MeasurementsPageState extends ConsumerState<MeasurementsPage> {
 
   @override
   void dispose() {
-    for (final c in _fieldCtrls.values) {
-      c.dispose();
-    }
+    for (final c in _fieldCtrls.values) { c.dispose(); }
     _notesCtrl.dispose();
     super.dispose();
   }
@@ -89,9 +88,7 @@ class _MeasurementsPageState extends ConsumerState<MeasurementsPage> {
         if (ok) {
           _showForm = false;
           _formDate = DateTime.now();
-          for (final c in _fieldCtrls.values) {
-            c.clear();
-          }
+          for (final c in _fieldCtrls.values) { c.clear(); }
           _notesCtrl.clear();
         }
       });
@@ -101,49 +98,52 @@ class _MeasurementsPageState extends ConsumerState<MeasurementsPage> {
   @override
   Widget build(BuildContext context) {
     final async = ref.watch(measurementsProvider);
-    final theme = Theme.of(context);
-    final cs = theme.colorScheme;
-
+    final ac = AppColors.of(context);
     final topPad = MediaQuery.of(context).padding.top + kToolbarHeight + 8;
+
     return RefreshIndicator(
       onRefresh: () => ref.refresh(measurementsProvider.future),
       child: ListView(
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: EdgeInsets.fromLTRB(20, topPad, 20, 32),
+        padding: EdgeInsets.fromLTRB(16, topPad, 16, 32),
         children: [
-          // Header
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
                 'Mis medidas',
-                style: theme.textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w700,
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w800,
                   letterSpacing: -0.4,
+                  color: ac.textPrimary,
                 ),
               ),
-              FilledButton.tonal(
+              OutlinedButton(
                 onPressed: () => setState(() => _showForm = !_showForm),
-                style: FilledButton.styleFrom(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                   shape: const StadiumBorder(),
                   minimumSize: Size.zero,
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  side: BorderSide(
+                    color: _showForm
+                        ? ac.glassBorderBase.withValues(alpha: 0.20)
+                        : kSeed.withValues(alpha: 0.50),
+                  ),
+                  foregroundColor: _showForm ? ac.textMuted : kSeed,
                 ),
                 child: Text(
                   _showForm ? 'Cancelar' : '+ Nueva medida',
-                  style: const TextStyle(
-                      fontWeight: FontWeight.w700, fontSize: 13),
+                  style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 16),
 
-          // New measurement form
           AnimatedSize(
-            duration: const Duration(milliseconds: 200),
+            duration: const Duration(milliseconds: 220),
             curve: Curves.easeInOut,
             child: _showForm
                 ? _NewForm(
@@ -158,7 +158,6 @@ class _MeasurementsPageState extends ConsumerState<MeasurementsPage> {
                 : const SizedBox.shrink(),
           ),
 
-          // List
           async.when(
             loading: () => const Padding(
               padding: EdgeInsets.symmetric(vertical: 48),
@@ -166,32 +165,31 @@ class _MeasurementsPageState extends ConsumerState<MeasurementsPage> {
             ),
             error: (e, _) => Padding(
               padding: const EdgeInsets.symmetric(vertical: 12),
-              child: Text(
-                e.toString(),
-                style: TextStyle(color: cs.error),
-              ),
+              child: Text(e.toString(),
+                  style: TextStyle(color: Theme.of(context).colorScheme.error)),
             ),
             data: (ms) {
               if (ms.isEmpty) {
                 return Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 32),
-                  child: Center(
-                    child: Text(
-                      'Aún no registraste medidas.',
-                      style: theme.textTheme.bodyMedium
-                          ?.copyWith(color: cs.onSurfaceVariant),
-                    ),
+                  padding: const EdgeInsets.symmetric(vertical: 40),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.straighten_outlined, size: 48,
+                          color: ac.textDisabled),
+                      const SizedBox(height: 12),
+                      Text('Aún no registraste medidas.',
+                          style: TextStyle(color: ac.textMuted)),
+                    ],
                   ),
                 );
               }
               return Column(
                 children: ms
-                    .map(
-                      (m) => Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: _MeasurementCard(key: ValueKey(m.id), m: m),
-                      ),
-                    )
+                    .map((m) => Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: _MeasurementCard(key: ValueKey(m.id), m: m),
+                        ))
                     .toList(),
               );
             },
@@ -202,7 +200,7 @@ class _MeasurementsPageState extends ConsumerState<MeasurementsPage> {
   }
 }
 
-// ─── New Form ───────────────────────────────────────────────────────���────────
+// ─── New Form ─────────────────────────────────────────────────────────────────
 
 class _NewForm extends StatelessWidget {
   const _NewForm({
@@ -225,83 +223,76 @@ class _NewForm extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final cs = theme.colorScheme;
+    final ac = AppColors.of(context);
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 20),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: cs.surfaceContainerLow,
-        border: Border.all(color: cs.outlineVariant),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Date picker row
-          GestureDetector(
-            onTap: onPickDate,
-            child: Row(
-              children: [
-                Icon(Icons.calendar_today_rounded,
-                    size: 16, color: cs.primary),
-                const SizedBox(width: 8),
-                Text(
-                  _fmtDate(date.toIso8601String().substring(0, 10)),
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    color: cs.primary,
-                    fontWeight: FontWeight.w700,
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 20),
+      child: GlassCard(
+        radius: 16,
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            GestureDetector(
+              onTap: onPickDate,
+              child: Row(
+                children: [
+                  Icon(Icons.calendar_today_rounded, size: 15, color: kSeed),
+                  const SizedBox(width: 8),
+                  Text(
+                    _fmtDate(date.toIso8601String().substring(0, 10)),
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: kSeed,
+                    ),
                   ),
-                ),
-                const SizedBox(width: 4),
-                Icon(Icons.arrow_drop_down,
-                    size: 18, color: cs.primary),
-              ],
-            ),
-          ),
-          const SizedBox(height: 14),
-
-          // Fields grid
-          _FieldGrid(fieldCtrls: fieldCtrls),
-          const SizedBox(height: 12),
-
-          // Notes
-          TextField(
-            controller: notesCtrl,
-            decoration: InputDecoration(
-              labelText: 'Notas (opcional)',
-              filled: true,
-              fillColor: cs.surfaceContainerHigh,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: BorderSide.none,
+                  const SizedBox(width: 4),
+                  Icon(Icons.arrow_drop_down, size: 18, color: kSeed),
+                ],
               ),
-              isDense: true,
             ),
-            maxLines: 2,
-          ),
-          const SizedBox(height: 14),
-
-          // Save button
-          FilledButton(
-            onPressed: (saving || !hasAnyValue) ? null : onSave,
-            style: FilledButton.styleFrom(
-              minimumSize: const Size.fromHeight(48),
-              shape: const StadiumBorder(),
+            const SizedBox(height: 14),
+            _FieldGrid(fieldCtrls: fieldCtrls),
+            const SizedBox(height: 12),
+            TextField(
+              controller: notesCtrl,
+              decoration: InputDecoration(
+                labelText: 'Notas (opcional)',
+                filled: true,
+                fillColor: ac.glassBorderBase.withValues(alpha: 0.07),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide(
+                      color: ac.glassBorderBase.withValues(alpha: 0.12)),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide(
+                      color: ac.glassBorderBase.withValues(alpha: 0.12)),
+                ),
+                isDense: true,
+              ),
+              maxLines: 2,
             ),
-            child: saving
-                ? const SizedBox(
-                    width: 18,
-                    height: 18,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Text(
-                    'Guardar',
-                    style: TextStyle(fontWeight: FontWeight.w700),
-                  ),
-          ),
-        ],
+            const SizedBox(height: 14),
+            FilledButton(
+              onPressed: (saving || !hasAnyValue) ? null : onSave,
+              style: FilledButton.styleFrom(
+                minimumSize: const Size.fromHeight(48),
+                shape: const StadiumBorder(),
+              ),
+              child: saving
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Text('Guardar',
+                      style: TextStyle(fontWeight: FontWeight.w700)),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -316,28 +307,16 @@ class _FieldGrid extends StatelessWidget {
     final pairs = <Widget>[];
     for (var i = 0; i < kMeasurementFields.length; i += 2) {
       final a = kMeasurementFields[i];
-      final b = i + 1 < kMeasurementFields.length
-          ? kMeasurementFields[i + 1]
-          : null;
+      final b = i + 1 < kMeasurementFields.length ? kMeasurementFields[i + 1] : null;
       pairs.add(
         Padding(
           padding: const EdgeInsets.only(bottom: 10),
           child: Row(
             children: [
-              Expanded(
-                child: _NumInput(
-                  field: a,
-                  controller: fieldCtrls[a.key]!,
-                ),
-              ),
+              Expanded(child: _NumInput(field: a, controller: fieldCtrls[a.key]!)),
               if (b != null) ...[
                 const SizedBox(width: 10),
-                Expanded(
-                  child: _NumInput(
-                    field: b,
-                    controller: fieldCtrls[b.key]!,
-                  ),
-                ),
+                Expanded(child: _NumInput(field: b, controller: fieldCtrls[b.key]!)),
               ] else
                 const Expanded(child: SizedBox()),
             ],
@@ -349,7 +328,7 @@ class _FieldGrid extends StatelessWidget {
   }
 }
 
-// ─── Measurement Card ────────────────────────────────────────────────────────
+// ─── Measurement Card ─────────────────────────────────────────────────────────
 
 class _MeasurementCard extends ConsumerStatefulWidget {
   const _MeasurementCard({required super.key, required this.m});
@@ -368,18 +347,14 @@ class _MeasurementCardState extends ConsumerState<_MeasurementCard> {
     super.initState();
     _ctrls = {
       for (final f in kMeasurementFields)
-        f.key: TextEditingController(
-          text: _fmtNum(widget.m.fieldValue(f.key)),
-        ),
+        f.key: TextEditingController(text: _fmtNum(widget.m.fieldValue(f.key))),
     };
     _notesCtrl = TextEditingController(text: widget.m.notes ?? '');
   }
 
   @override
   void dispose() {
-    for (final c in _ctrls.values) {
-      c.dispose();
-    }
+    for (final c in _ctrls.values) { c.dispose(); }
     _notesCtrl.dispose();
     super.dispose();
   }
@@ -430,6 +405,9 @@ class _MeasurementCardState extends ConsumerState<_MeasurementCard> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
+            style: TextButton.styleFrom(
+              foregroundColor: Theme.of(context).colorScheme.error,
+            ),
             child: const Text('Eliminar'),
           ),
         ],
@@ -442,54 +420,44 @@ class _MeasurementCardState extends ConsumerState<_MeasurementCard> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final cs = theme.colorScheme;
+    final ac = AppColors.of(context);
 
-    return Container(
+    return GlassCard(
+      radius: 14,
       padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: cs.surfaceContainerLow,
-        border: Border.all(color: cs.outlineVariant),
-        borderRadius: BorderRadius.circular(16),
-      ),
+      borderOpacity: 0.10,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Card header: date + delete
           Row(
             children: [
               GestureDetector(
                 onTap: _pickDate,
                 child: Row(
                   children: [
-                    Icon(Icons.calendar_today_rounded,
-                        size: 14, color: cs.onSurfaceVariant),
+                    Icon(Icons.calendar_today_rounded, size: 13, color: ac.textMuted),
                     const SizedBox(width: 6),
                     Text(
                       _fmtDate(widget.m.measuredAt),
-                      style: theme.textTheme.titleSmall?.copyWith(
+                      style: TextStyle(
+                        fontSize: 13,
                         fontWeight: FontWeight.w700,
+                        color: ac.textPrimary,
                       ),
                     ),
-                    const SizedBox(width: 2),
-                    Icon(Icons.edit_outlined,
-                        size: 13, color: cs.onSurfaceVariant),
+                    const SizedBox(width: 4),
+                    Icon(Icons.edit_outlined, size: 12, color: ac.textDisabled),
                   ],
                 ),
               ),
               const Spacer(),
-              IconButton(
-                icon: Icon(Icons.close, size: 18, color: cs.onSurfaceVariant),
-                onPressed: _delete,
-                visualDensity: VisualDensity.compact,
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
+              GestureDetector(
+                onTap: _delete,
+                child: Icon(Icons.close_rounded, size: 18, color: ac.textDisabled),
               ),
             ],
           ),
           const SizedBox(height: 12),
-
-          // Fields grid
           for (var i = 0; i < kMeasurementFields.length; i += 2) ...[
             Row(
               children: [
@@ -497,8 +465,7 @@ class _MeasurementCardState extends ConsumerState<_MeasurementCard> {
                   child: _NumInput(
                     field: kMeasurementFields[i],
                     controller: _ctrls[kMeasurementFields[i].key]!,
-                    onCommit: (v) =>
-                        _updateField(kMeasurementFields[i].key, v),
+                    onCommit: (v) => _updateField(kMeasurementFields[i].key, v),
                   ),
                 ),
                 if (i + 1 < kMeasurementFields.length) ...[
@@ -507,38 +474,32 @@ class _MeasurementCardState extends ConsumerState<_MeasurementCard> {
                     child: _NumInput(
                       field: kMeasurementFields[i + 1],
                       controller: _ctrls[kMeasurementFields[i + 1].key]!,
-                      onCommit: (v) =>
-                          _updateField(kMeasurementFields[i + 1].key, v),
+                      onCommit: (v) => _updateField(kMeasurementFields[i + 1].key, v),
                     ),
                   ),
                 ] else
                   const Expanded(child: SizedBox()),
               ],
             ),
-            if (i + 2 < kMeasurementFields.length)
-              const SizedBox(height: 10),
+            if (i + 2 < kMeasurementFields.length) const SizedBox(height: 10),
           ],
           const SizedBox(height: 10),
-
-          // Notes
           TextField(
             controller: _notesCtrl,
             decoration: InputDecoration(
               hintText: 'Notas',
-              hintStyle: TextStyle(color: cs.onSurfaceVariant),
+              hintStyle: TextStyle(color: ac.textDisabled),
               filled: true,
-              fillColor: cs.surfaceContainerHigh,
+              fillColor: ac.glassBorderBase.withValues(alpha: 0.07),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
                 borderSide: BorderSide.none,
               ),
               isDense: true,
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 10,
-                vertical: 8,
-              ),
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
             ),
-            style: theme.textTheme.bodySmall,
+            style: TextStyle(fontSize: 12, color: ac.textMedium),
             onEditingComplete: () => _updateNotes(_notesCtrl.text),
             onTapOutside: (_) => _updateNotes(_notesCtrl.text),
           ),
@@ -548,7 +509,7 @@ class _MeasurementCardState extends ConsumerState<_MeasurementCard> {
   }
 }
 
-// ─── Numeric Input ───────────────────────────────────────────────────────────
+// ─── Numeric Input ────────────────────────────────────────────────────────────
 
 class _NumInput extends StatelessWidget {
   const _NumInput({
@@ -563,8 +524,7 @@ class _NumInput extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final cs = theme.colorScheme;
+    final ac = AppColors.of(context);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -573,20 +533,17 @@ class _NumInput extends StatelessWidget {
           children: [
             Text(
               field.label.toUpperCase(),
-              style: theme.textTheme.labelSmall?.copyWith(
-                color: cs.onSurfaceVariant,
+              style: TextStyle(
                 fontSize: 9,
                 fontWeight: FontWeight.w800,
                 letterSpacing: 0.5,
+                color: ac.textMuted,
               ),
             ),
             const SizedBox(width: 4),
             Text(
               field.unit,
-              style: theme.textTheme.labelSmall?.copyWith(
-                color: cs.onSurfaceVariant,
-                fontSize: 9,
-              ),
+              style: TextStyle(fontSize: 9, color: ac.textDisabled),
             ),
           ],
         ),
@@ -597,35 +554,41 @@ class _NumInput extends StatelessWidget {
             baseOffset: 0,
             extentOffset: controller.text.length,
           ),
-          onEditingComplete: onCommit == null
-              ? null
-              : () => onCommit!(controller.text),
-          onTapOutside: onCommit == null
-              ? null
-              : (_) => onCommit!(controller.text),
-          keyboardType:
-              const TextInputType.numberWithOptions(decimal: true),
+          onEditingComplete:
+              onCommit == null ? null : () => onCommit!(controller.text),
+          onTapOutside:
+              onCommit == null ? null : (_) => onCommit!(controller.text),
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
           inputFormatters: [
             FilteringTextInputFormatter.allow(RegExp(r'[\d.]')),
           ],
           decoration: InputDecoration(
             hintText: '—',
-            hintStyle: TextStyle(color: cs.onSurfaceVariant),
+            hintStyle: TextStyle(color: ac.textDisabled),
             filled: true,
-            fillColor: cs.surfaceContainerHigh,
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 10,
-              vertical: 8,
-            ),
+            fillColor: ac.glassBorderBase.withValues(alpha: 0.07),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide.none,
+              borderSide: BorderSide(
+                  color: ac.glassBorderBase.withValues(alpha: 0.12)),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(
+                  color: ac.glassBorderBase.withValues(alpha: 0.12)),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: const BorderSide(color: kSeed, width: 1.5),
             ),
             isDense: true,
           ),
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,
+            color: ac.textPrimary,
           ),
         ),
       ],

@@ -78,10 +78,11 @@ class _RoutineFormPageState extends State<RoutineFormPage> {
         .join(', ');
     final showWarning = _days.length >= 3;
 
+    final ac = AppColors.of(context);
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.light,
+      value: ac.overlayStyle,
       child: Scaffold(
-        backgroundColor: kBg,
+        backgroundColor: ac.bg,
         appBar: AppBar(
           leading: IconButton(
             icon: const Icon(Icons.close),
@@ -115,16 +116,22 @@ class _RoutineFormPageState extends State<RoutineFormPage> {
             padding: const EdgeInsets.fromLTRB(20, 24, 20, 40),
             children: [
               // Name field
-              GlassCard(
+              NeuroCard(
+                pressed: true,
+                radius: 16,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                 child: TextField(
                   controller: _ctrl,
                   autofocus: true,
                   textCapitalization: TextCapitalization.sentences,
-                  style: const TextStyle(
-                      color: Color(0xF2FFFFFF), fontSize: 16),
-                  decoration: const InputDecoration(
+                  style: TextStyle(color: ac.textPrimary, fontSize: 16),
+                  decoration: InputDecoration(
                     labelText: 'Nombre de la rutina',
-                    labelStyle: TextStyle(color: Color(0x99FFFFFF)),
+                    labelStyle: TextStyle(color: ac.textSecondary),
+                    border: InputBorder.none,
+                    enabledBorder: InputBorder.none,
+                    focusedBorder: InputBorder.none,
+                    filled: false,
                   ),
                   onChanged: (_) => setState(() {}),
                   onSubmitted: (_) => _submit(),
@@ -132,16 +139,16 @@ class _RoutineFormPageState extends State<RoutineFormPage> {
               ),
               const SizedBox(height: 20),
               // Days multi-select
-              GlassCard(
+              NeuroCard(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'DÍAS DE LA SEMANA',
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
-                        color: Color(0x80FFFFFF),
+                        color: ac.textMuted,
                         letterSpacing: 1.2,
                       ),
                     ),
@@ -157,27 +164,27 @@ class _RoutineFormPageState extends State<RoutineFormPage> {
                                 height: 40,
                                 alignment: Alignment.center,
                                 decoration: BoxDecoration(
-                                  color: _days.contains(d.value)
-                                      ? kSeed.withValues(alpha: 0.2)
-                                      : kGlassFill,
+                                  color: ac.bg,
                                   borderRadius: BorderRadius.circular(999),
-                                  border: Border.all(
-                                    color: _days.contains(d.value)
-                                        ? kSeed
-                                        : kGlassBorder,
-                                    width: _days.contains(d.value) ? 1.5 : 1,
-                                  ),
+                                  boxShadow: _days.contains(d.value)
+                                      ? ac.pressed(NeuroSize.sm)
+                                      : ac.raised(NeuroSize.sm),
+                                  border: _days.contains(d.value)
+                                      ? Border.all(
+                                          color: kSeed.withValues(alpha: 0.45),
+                                          width: 1.5)
+                                      : null,
                                 ),
                                 child: Text(
                                   d.label,
                                   style: TextStyle(
                                     fontWeight: _days.contains(d.value)
                                         ? FontWeight.w800
-                                        : FontWeight.w600,
+                                        : FontWeight.w500,
                                     fontSize: 13,
                                     color: _days.contains(d.value)
                                         ? kSeed
-                                        : const Color(0x80FFFFFF),
+                                        : ac.textMuted,
                                   ),
                                 ),
                               ),

@@ -7,83 +7,119 @@ import 'data/routines_repository.dart';
 import 'providers.dart';
 import 'routine_form_page.dart';
 
-
 class RoutinesPage extends ConsumerWidget {
   const RoutinesPage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final asyncRoutines = ref.watch(routinesProvider);
+    final asyncRoutines = ref.watch(trainingRoutinesProvider);
     final todayDow = DateTime.now().weekday % 7;
-    final topPad =
-        MediaQuery.of(context).padding.top + kToolbarHeight + 8;
+    final ac = AppColors.of(context);
+    final topPad = MediaQuery.of(context).padding.top + kToolbarHeight + 8;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
-      body: RefreshIndicator(
-        onRefresh: () => ref.refresh(routinesProvider.future),
-        child: asyncRoutines.when(
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (e, _) => _ErrorState(message: e.toString()),
-          data: (routines) => CustomScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            slivers: [
-              // ── Nueva rutina button ──────────────────────────────────────
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: EdgeInsets.fromLTRB(16, topPad, 16, 16),
-                  child: FilledButton.icon(
-                    onPressed: () => _showCreateDialog(context, ref),
-                    icon: const Icon(Icons.add_rounded, size: 20),
-                    label: const Text('Nueva rutina'),
-                    style: FilledButton.styleFrom(
-                      minimumSize: const Size.fromHeight(52),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14)),
+      body: asyncRoutines.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (e, _) => _ErrorState(message: e.toString()),
+        data: (routines) => CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          slivers: [
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(20, topPad, 20, 20),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'Rutinas',
+                        style: TextStyle(
+                          fontSize: 26,
+                          fontWeight: FontWeight.w700,
+                          color: ac.textPrimary,
+                          letterSpacing: -0.5,
+                        ),
+                      ),
                     ),
+                    GestureDetector(
+                      onTap: () => _showCreateDialog(context, ref),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 9),
+                        decoration: BoxDecoration(
+                          color: kSeed,
+                          borderRadius: BorderRadius.circular(999),
+                          boxShadow: [
+                            BoxShadow(
+                              color: kSeed.withValues(alpha: 0.35),
+                              blurRadius: 12,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.add, size: 14, color: Color(0xFF0F2318)),
+                            SizedBox(width: 6),
+                            Text(
+                              'Nueva',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: Color(0xFF0F2318),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            if (routines.isEmpty)
+              SliverFillRemaining(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.fitness_center_outlined,
+                        size: 48, color: ac.textMuted),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Aún no tienes rutinas.',
+                      style: TextStyle(color: ac.textMuted, height: 1.5),
+                    ),
+                  ],
+                ),
+              )
+            else
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 100),
+                sliver: SliverGrid(
+                  gridDelegate:
+                      const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    mainAxisSpacing: 16,
+                    crossAxisSpacing: 16,
+                    mainAxisExtent: 172,
+                  ),
+                  delegate: SliverChildBuilderDelegate(
+                    (context, i) {
+                      if (i == routines.length) {
+                        return _AddCard(
+                            onTap: () => _showCreateDialog(context, ref));
+                      }
+                      return _RoutineCard(
+                        routine: routines[i],
+                        isToday: routines[i].daysOfWeek.contains(todayDow),
+                      );
+                    },
+                    childCount: routines.length + 1,
                   ),
                 ),
               ),
-              // ── Grid or empty state ──────────────────────────────────────
-              if (routines.isEmpty)
-                SliverFillRemaining(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.fitness_center_outlined,
-                          size: 48,
-                          color: Colors.white.withValues(alpha: 0.2)),
-                      const SizedBox(height: 16),
-                      const Text(
-                        'Aún no tenés rutinas.',
-                        style: TextStyle(
-                            color: Color(0x80FFFFFF), height: 1.5),
-                      ),
-                    ],
-                  ),
-                )
-              else
-                SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
-                  sliver: SliverGrid(
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      mainAxisSpacing: 12,
-                      crossAxisSpacing: 12,
-                      childAspectRatio: 0.95,
-                    ),
-                    delegate: SliverChildBuilderDelegate(
-                      (context, i) => _RoutineCard(
-                        routine: routines[i],
-                        isToday: routines[i].daysOfWeek.contains(todayDow),
-                      ),
-                      childCount: routines.length,
-                    ),
-                  ),
-                ),
-            ],
-          ),
+          ],
         ),
       ),
     );
@@ -116,35 +152,140 @@ class _RoutineCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final ac = AppColors.of(context);
     return GestureDetector(
       onTap: () => context.push('/rutinas/${routine.id}'),
-      child: GlassCard(
-        radius: 16,
+      child: Container(
         padding: const EdgeInsets.all(14),
-        borderOpacity: isToday ? 0.35 : 0.10,
-        fillOpacity: isToday ? 0.09 : 0.06,
+        decoration: BoxDecoration(
+          color: ac.bg,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: isToday
+              ? [
+                  ...ac.raised(NeuroSize.md),
+                  BoxShadow(
+                    color: kSeed.withValues(alpha: 0.12),
+                    blurRadius: 22,
+                  ),
+                ]
+              : ac.raised(NeuroSize.md),
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _Badge(routine: routine, isToday: isToday),
+            _DayChip(routine: routine, isToday: isToday),
             const SizedBox(height: 10),
             Text(
               routine.name,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                fontSize: 15,
+              style: TextStyle(
+                fontSize: 14,
                 fontWeight: FontWeight.w700,
-                color: Color(0xF2FFFFFF),
-                height: 1.2,
+                color: ac.textPrimary,
+                letterSpacing: -0.2,
+                height: 1.25,
               ),
             ),
             const SizedBox(height: 4),
             Text(
               _statsLabel(routine),
-              style: const TextStyle(
+              style: TextStyle(fontSize: 11, color: ac.textMuted),
+            ),
+            const Spacer(),
+            _EmpezarButton(isToday: isToday, routineId: routine.id),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── Day chip ──────────────────────────────────────────────────────────────────
+
+class _DayChip extends StatelessWidget {
+  const _DayChip({required this.routine, required this.isToday});
+  final Routine routine;
+  final bool isToday;
+
+  @override
+  Widget build(BuildContext context) {
+    final ac = AppColors.of(context);
+    final label = _badgeLabel(routine, isToday);
+    if (isToday) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+        decoration: BoxDecoration(
+          color: kSeed,
+          borderRadius: BorderRadius.circular(999),
+        ),
+        child: Text(
+          label,
+          style: const TextStyle(
+            fontSize: 9,
+            fontWeight: FontWeight.w800,
+            letterSpacing: 0.6,
+            color: Color(0xFF0F2318),
+          ),
+        ),
+      );
+    }
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+      decoration: BoxDecoration(
+        color: ac.bg,
+        borderRadius: BorderRadius.circular(999),
+        boxShadow: ac.raised(NeuroSize.sm),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 9,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0.6,
+          color: ac.textMuted,
+        ),
+      ),
+    );
+  }
+}
+
+// ── Empezar button ────────────────────────────────────────────────────────────
+
+class _EmpezarButton extends StatelessWidget {
+  const _EmpezarButton({required this.isToday, required this.routineId});
+  final bool isToday;
+  final String routineId;
+
+  @override
+  Widget build(BuildContext context) {
+    final ac = AppColors.of(context);
+    return GestureDetector(
+      onTap: () => context.push('/rutinas/$routineId'),
+      child: Container(
+        height: 34,
+        decoration: BoxDecoration(
+          color: isToday ? kSeed : ac.bg,
+          borderRadius: BorderRadius.circular(999),
+          boxShadow: isToday
+              ? [BoxShadow(color: kSeed.withValues(alpha: 0.30), blurRadius: 10, offset: const Offset(0, 4))]
+              : ac.raised(NeuroSize.sm),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.play_arrow_rounded,
+              size: 16,
+              color: isToday ? const Color(0xFF0F2318) : ac.textMuted,
+            ),
+            const SizedBox(width: 4),
+            Text(
+              'Empezar',
+              style: TextStyle(
                 fontSize: 12,
-                color: Color(0x80FFFFFF),
+                fontWeight: FontWeight.w700,
+                color: isToday ? const Color(0xFF0F2318) : ac.textSecondary,
               ),
             ),
           ],
@@ -154,35 +295,60 @@ class _RoutineCard extends StatelessWidget {
   }
 }
 
-class _Badge extends StatelessWidget {
-  const _Badge({required this.routine, required this.isToday});
-  final Routine routine;
-  final bool isToday;
+// ── Add card ──────────────────────────────────────────────────────────────────
+
+class _AddCard extends StatelessWidget {
+  const _AddCard({required this.onTap});
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final label = _badgeLabel(routine, isToday);
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: isToday ? kSeed.withValues(alpha: 0.18) : kGlassFill,
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(
-          color: isToday ? kSeed.withValues(alpha: 0.35) : kGlassBorder,
+    final ac = AppColors.of(context);
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: ac.bg,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: ac.pressed(NeuroSize.md),
         ),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 9,
-          fontWeight: FontWeight.w800,
-          letterSpacing: 0.6,
-          color: isToday ? kSeed : const Color(0x80FFFFFF),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                color: ac.bg,
+                shape: BoxShape.circle,
+                boxShadow: ac.raised(NeuroSize.sm),
+              ),
+              child: Icon(Icons.add, size: 16, color: kSeed),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              'Nueva rutina',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: ac.textSecondary,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              'Crear desde cero',
+              style: TextStyle(fontSize: 10, color: ac.textMuted),
+            ),
+          ],
         ),
       ),
     );
   }
 }
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
 
 String _badgeLabel(Routine r, bool isToday) {
   if (r.daysOfWeek.isEmpty) return 'SIN DÍA';
@@ -203,12 +369,15 @@ String _statsLabel(Routine r) {
   return '$exCount ej. · ~${minutes < 5 ? 5 : minutes} min';
 }
 
+// ── Error state ───────────────────────────────────────────────────────────────
+
 class _ErrorState extends StatelessWidget {
   const _ErrorState({required this.message});
   final String message;
 
   @override
   Widget build(BuildContext context) {
+    final ac = AppColors.of(context);
     return ListView(
       physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.all(24),
@@ -223,7 +392,7 @@ class _ErrorState extends StatelessWidget {
         const SizedBox(height: 4),
         Text(message,
             textAlign: TextAlign.center,
-            style: const TextStyle(color: Color(0x80FFFFFF), fontSize: 12)),
+            style: TextStyle(color: ac.textMuted, fontSize: 12)),
       ],
     );
   }

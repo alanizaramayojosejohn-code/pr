@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../theme/app_theme.dart';
+import '../instructor/send_template_sheet.dart';
 import '../workout/providers.dart';
 import 'data/routines_repository.dart';
 import 'exercise_browser_page.dart';
@@ -38,7 +39,15 @@ class RoutineDetailPage extends ConsumerWidget {
           onPressed: () =>
               context.canPop() ? context.pop() : context.go('/rutinas'),
         ),
-        title: const Text('Rutina'),
+        title: Text(
+          asyncRoutines.asData?.value
+                      .where((r) => r.id == routineId)
+                      .firstOrNull
+                      ?.isTemplate ==
+                  true
+              ? 'Plantilla'
+              : 'Rutina',
+        ),
         actions: [
           asyncRoutines.whenOrNull(
                 data: (routines) {
@@ -143,7 +152,11 @@ class RoutineDetailPage extends ConsumerWidget {
       final repo = ref.read(routinesRepositoryProvider);
       await repo.deleteRoutine(routine.id);
       ref.invalidate(routinesProvider);
-      if (context.mounted) context.go('/rutinas');
+      // Una plantilla se abre desde el panel de instructor, no desde /rutinas:
+      // volver atrás deja al usuario donde estaba.
+      if (context.mounted) {
+        context.canPop() ? context.pop() : context.go('/rutinas');
+      }
     }
   }
 }
@@ -306,6 +319,14 @@ class _RoutineHeader extends ConsumerWidget {
             color: AppColors.of(context).textMuted,
           ),
         ),
+        if (routine.isTemplate || routine.isAssigned) ...[
+          const SizedBox(height: 10),
+          _OriginBadge(
+            label: routine.isTemplate
+                ? 'PLANTILLA · NO SE ENTRENA'
+                : 'ENVIADA POR TU INSTRUCTOR',
+          ),
+        ],
         const SizedBox(height: 20),
         Text(
           'DÍA',
@@ -331,20 +352,33 @@ class _RoutineHeader extends ConsumerWidget {
           ],
         ),
         const SizedBox(height: 24),
-        FilledButton.icon(
-          onPressed: routine.exercises.isEmpty
-              ? null
-              : () {
-                  ref.read(workoutProvider.notifier).start(routine);
-                  context.push('/entrenar');
-                },
-          icon: const Icon(Icons.play_arrow_rounded),
-          label: const Text('Empezar entreno'),
-          style: FilledButton.styleFrom(
-            minimumSize: const Size.fromHeight(52),
-            shape: const StadiumBorder(),
+        if (routine.isTemplate)
+          FilledButton.icon(
+            onPressed: routine.exercises.isEmpty
+                ? null
+                : () => showClientPicker(context, template: routine),
+            icon: const Icon(Icons.send_rounded, size: 18),
+            label: const Text('Enviar a un alumno'),
+            style: FilledButton.styleFrom(
+              minimumSize: const Size.fromHeight(52),
+              shape: const StadiumBorder(),
+            ),
+          )
+        else
+          FilledButton.icon(
+            onPressed: routine.exercises.isEmpty
+                ? null
+                : () {
+                    ref.read(workoutProvider.notifier).start(routine);
+                    context.push('/entrenar');
+                  },
+            icon: const Icon(Icons.play_arrow_rounded),
+            label: const Text('Empezar entreno'),
+            style: FilledButton.styleFrom(
+              minimumSize: const Size.fromHeight(52),
+              shape: const StadiumBorder(),
+            ),
           ),
-        ),
         const SizedBox(height: 28),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -435,6 +469,36 @@ class _RoutineHeader extends ConsumerWidget {
             ),
           ),
       ],
+    );
+  }
+}
+
+// ── Origen de la rutina ───────────────────────────────────────────────────────
+
+class _OriginBadge extends StatelessWidget {
+  const _OriginBadge({required this.label});
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        decoration: BoxDecoration(
+          color: kSeed.withValues(alpha: 0.14),
+          borderRadius: BorderRadius.circular(999),
+        ),
+        child: Text(
+          label,
+          style: const TextStyle(
+            fontSize: 9,
+            fontWeight: FontWeight.w800,
+            letterSpacing: 0.6,
+            color: kSeed,
+          ),
+        ),
+      ),
     );
   }
 }

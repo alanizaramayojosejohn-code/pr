@@ -1,5 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Required for all foreground services (Android 9+) -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <!-- Foreground service type permission (Android 14+) -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_HEALTH" />
     <!--
@@ -12,10 +15,14 @@
     <uses-permission android:name="android.permission.HIGH_SAMPLING_RATE_SENSORS" />
     <!-- Runtime notification permission (Android 13+) -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Wake lock to keep timer running while screen is off -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
     <!-- Required for the rest-finished alert's vibration pattern -->
     <uses-permission android:name="android.permission.VIBRATE" />
     <!-- Lets the user exempt the timer service from battery optimization -->
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+    <!-- Required since Android 8 to install APKs from unknown sources -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 
     <application
         android:label="PR"
@@ -43,7 +50,7 @@
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="com.davidmorales.pr" android:host="callback" />
+                <data android:scheme="com.alanizjose.pr" android:host="callback" />
             </intent-filter>
         </activity>
 
@@ -63,6 +70,17 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+
+        <!-- FileProvider for open_filex APK installs -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
     </application>
 
     <queries>

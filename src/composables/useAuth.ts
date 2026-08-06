@@ -1,15 +1,18 @@
 import { supabase } from "@/supabase";
 import { computed, ref } from "vue";
 import type { User } from "@supabase/supabase-js";
-import { Capacitor } from "@capacitor/core";
+
+export type Role = "user" | "instructor" | "admin";
 
 export interface Profile {
   id: string;
   email: string | null;
-  role: "user" | "admin";
+  role: Role;
   status: "approved" | "blocked";
   expires_at: string | null;
   created_at: string;
+  /** Instructor a cargo. Solo lo llevan los clientes. */
+  instructor_id: string | null;
 }
 
 const user = ref<User | null>(null);
@@ -20,51 +23,107 @@ const ready = ref(false);
 const blockedMessage = ref<string | null>(null);
 
 const isLoggedIn = computed(() => user.value !== null);
-const isAdmin = computed(
-  () => !Capacitor.isNativePlatform() && profile.value?.role === "admin",
-);
+const isAdmin = computed(() => profile.value?.role === "admin");
 
-async function loadProfile(userId: string): Promise<Profile | null> {
+const ADMIN_ONLY_MESSAGE =
+  "Este panel es solo para administradores. Usá la app de Android para entrenar.";
+
+const INSTRUCTOR_MESSAGE =
+  "Los instructores gestionan a sus clientes desde la app de Android.";
+
+async function loadProfile(u: User): Promise<Profile | null> {
   const { data, error: err } = await supabase
     .from("profiles")
     .select("*")
-    .eq("id", userId)
+    .eq("id", u.id)
     .single();
-  if (err) {
-    profile.value = null;
-    return null;
+
+  if (data) {
+    profile.value = data as Profile;
+    return profile.value;
   }
-  profile.value = data as Profile;
-  return profile.value;
+
+  // PGRST116 = fila no encontrada → usuario nuevo (ej. Google OAuth)
+  if (err?.code === "PGRST116") {
+    const { data: created } = await supabase
+      .from("profiles")
+      .insert({ id: u.id, email: u.email ?? null, role: "user", status: "approved" })
+      .select()
+      .single();
+    profile.value = (created as Profile) ?? null;
+    return profile.value;
+  }
+
+  // Error inesperado (red, RLS): se conserva el perfil ya cargado. Borrarlo
+  // dejaría isAdmin en false y, como el guard ahora exige admin, un bache de
+  // red al refrescar el token echaría al administrador al login.
+  return null;
 }
 
-async function enforceStatus(p: Profile | null) {
+async function clearSession() {
+  await supabase.auth.signOut();
+  user.value = null;
+  profile.value = null;
+}
+
+/**
+ * Este sitio es únicamente el panel de administración; la app de Android es la
+ * que usan los clientes. Cualquiera que llegue aquí sin rol admin —una sesión
+ * vieja guardada en el navegador, o alguien que descubra /admin— se va fuera.
+ */
+async function enforceAccess(p: Profile | null) {
   if (!p) return;
   if (p.status === "blocked") {
     blockedMessage.value = "Tu cuenta está bloqueada. Contacta al administrador.";
-    await supabase.auth.signOut();
-    user.value = null;
-    profile.value = null;
+    await clearSession();
+    return;
   }
+  if (p.role !== "admin") {
+    blockedMessage.value =
+      p.role === "instructor" ? INSTRUCTOR_MESSAGE : ADMIN_ONLY_MESSAGE;
+    await clearSession();
+  }
+}
+
+/**
+ * Carga el perfil y aplica el filtro de acceso, deduplicando llamadas
+ * simultáneas: al iniciar sesión esto se dispara dos veces —desde login() y
+ * desde onAuthStateChange— y no hace falta ir dos veces a la base.
+ */
+let syncing: Promise<void> | null = null;
+function syncProfile(u: User): Promise<void> {
+  if (syncing) return syncing;
+  syncing = (async () => {
+    const p = await loadProfile(u);
+    await enforceAccess(p);
+  })().finally(() => {
+    syncing = null;
+  });
+  return syncing;
 }
 
 async function initAuth() {
   const { data } = await supabase.auth.getSession();
   user.value = data.session?.user ?? null;
   if (user.value) {
-    const p = await loadProfile(user.value.id);
-    await enforceStatus(p);
+    await syncProfile(user.value);
   }
   ready.value = true;
 
-  supabase.auth.onAuthStateChange(async (_event, session) => {
+  supabase.auth.onAuthStateChange((_event, session) => {
     user.value = session?.user ?? null;
-    if (user.value) {
-      const p = await loadProfile(user.value.id);
-      await enforceStatus(p);
-    } else {
+    if (!user.value) {
       profile.value = null;
+      return;
     }
+    // Este callback se despacha con el lock interno de supabase-js tomado:
+    // consultar la base o llamar a signOut() aquí dentro se autobloquea hasta
+    // que el lock expira, y la app se queda colgada. setTimeout saca el trabajo
+    // fuera del callback, que debe retornar de forma síncrona.
+    const u = user.value;
+    setTimeout(() => {
+      void syncProfile(u);
+    }, 0);
   });
 }
 
@@ -85,13 +144,8 @@ async function login(email: string, password: string) {
   }
   user.value = data.user;
   if (data.user) {
-    const p = await loadProfile(data.user.id);
-    if (p?.status === "blocked") {
-      await supabase.auth.signOut();
-      user.value = null;
-      profile.value = null;
-      error.value = "Tu cuenta está bloqueada. Contacta al administrador.";
-    }
+    // Cierra la sesión y deja el motivo en blockedMessage si no pasa el filtro.
+    await syncProfile(data.user);
   }
   loading.value = false;
 }

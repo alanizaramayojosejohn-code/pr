@@ -164,7 +164,8 @@ async function onConfirmPicker() {
   }
   if (!toAdd.length) return;
   const ok = await addExercisesToRoutine(pickerRoutineId.value, toAdd);
-  if (ok) router.push({ name: "rutinas" });
+  // /rutinas ya no existe en el panel web; el picker queda sin punto de entrada.
+  if (ok) router.push({ name: "ejercicios" });
 }
 
 function goBack() {

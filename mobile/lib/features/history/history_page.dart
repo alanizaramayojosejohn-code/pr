@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../theme/app_theme.dart';
 import 'data/history_repository.dart';
 
 class HistoryPage extends StatefulWidget {
@@ -34,7 +35,6 @@ class _HistoryPageState extends State<HistoryPage> {
     } else {
       setState(() => _loadingMore = true);
     }
-
     try {
       final page = reset ? 0 : _page;
       final result = await _repo.fetchSessions(page: page);
@@ -46,47 +46,39 @@ class _HistoryPageState extends State<HistoryPage> {
         _loading = false;
         _loadingMore = false;
       });
-    } catch (e) {
+    } catch (_) {
       if (!mounted) return;
-      setState(() {
-        _loading = false;
-        _loadingMore = false;
-      });
+      setState(() { _loading = false; _loadingMore = false; });
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final topPad = MediaQuery.of(context).padding.top + kToolbarHeight + 8;
+    final ac = AppColors.of(context);
 
     if (_loading) return const Center(child: CircularProgressIndicator());
-
-    if (_sessions.isEmpty) {
-      return RefreshIndicator(
-        onRefresh: () => _load(reset: true),
-        child: ListView(
-          padding: EdgeInsets.fromLTRB(16, topPad, 16, 80),
-          children: [
-            Center(
-              child: Text(
-                'Sin entrenos aún',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color:
-                          Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-              ),
-            ),
-          ],
-        ),
-      );
-    }
 
     return RefreshIndicator(
       onRefresh: () => _load(reset: true),
       child: ListView.builder(
+        physics: const AlwaysScrollableScrollPhysics(),
         padding: EdgeInsets.fromLTRB(16, topPad, 16, 80),
-        itemCount: _sessions.length + (_hasMore ? 1 : 0),
+        itemCount: _sessions.isEmpty ? 1 : _sessions.length + (_hasMore ? 1 : 0),
         itemBuilder: (_, i) {
+          if (_sessions.isEmpty) {
+            return Padding(
+              padding: const EdgeInsets.only(top: 80),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.history_rounded, size: 48, color: ac.textDisabled),
+                  const SizedBox(height: 12),
+                  Text('Sin entrenos aún', style: TextStyle(color: ac.textMuted)),
+                ],
+              ),
+            );
+          }
           if (i == _sessions.length) {
             return Padding(
               padding: const EdgeInsets.only(top: 4, bottom: 8),
@@ -98,14 +90,19 @@ class _HistoryPageState extends State<HistoryPage> {
                         minimumSize: const Size.fromHeight(44),
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12)),
+                        side: BorderSide(
+                            color: ac.glassBorderBase.withValues(alpha: 0.15)),
                       ),
                       child: const Text('Cargar más'),
                     ),
             );
           }
-          return _SessionCard(
-            session: _sessions[i],
-            onDeleted: () => _load(reset: true),
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: _SessionCard(
+              session: _sessions[i],
+              onDeleted: () => _load(reset: true),
+            ),
           );
         },
       ),
@@ -130,105 +127,103 @@ class _SessionCardState extends State<_SessionCard> {
   @override
   Widget build(BuildContext context) {
     final s = widget.session;
-    final theme = Theme.of(context);
-    final cs = theme.colorScheme;
-    final labelStyle = theme.textTheme.labelSmall?.copyWith(
-      color: cs.onSurfaceVariant,
-    );
+    final ac = AppColors.of(context);
 
-    return Card(
-      margin: const EdgeInsets.only(bottom: 10),
+    return GlassCard(
+      radius: 14,
+      padding: EdgeInsets.zero,
+      borderOpacity: 0.10,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // ── Always-visible summary ──────────────────────────────────────
-          InkWell(
-            borderRadius: BorderRadius.vertical(
-              top: const Radius.circular(12),
-              bottom: Radius.circular(_expanded ? 0 : 12),
-            ),
+          GestureDetector(
             onTap: () => setState(() => _expanded = !_expanded),
+            behavior: HitTestBehavior.opaque,
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
+              padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Routine name + date
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Expanded(
                         child: Text(
                           s.routineName ?? 'Sin rutina',
-                          style: theme.textTheme.titleSmall
-                              ?.copyWith(fontWeight: FontWeight.w700),
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            color: ac.textPrimary,
+                          ),
                         ),
                       ),
                       const SizedBox(width: 8),
-                      Text(_fmtDate(s.startedAt), style: labelStyle),
+                      Text(
+                        _fmtDate(s.startedAt),
+                        style: TextStyle(fontSize: 11, color: ac.textDisabled),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 5),
-                  // Duration + volume
                   Row(
                     children: [
-                      Icon(Icons.timer_outlined,
-                          size: 12, color: cs.onSurfaceVariant),
+                      Icon(Icons.timer_outlined, size: 12, color: ac.textMuted),
                       const SizedBox(width: 3),
-                      Text(_fmtDur(s.durationSec), style: labelStyle),
-                      const SizedBox(width: 14),
-                      Icon(Icons.fitness_center,
-                          size: 12, color: cs.onSurfaceVariant),
+                      Text(_fmtDur(s.durationSec),
+                          style: TextStyle(fontSize: 11, color: ac.textMuted)),
+                      const SizedBox(width: 10),
+                      Icon(Icons.fitness_center_outlined, size: 12, color: ac.textMuted),
                       const SizedBox(width: 3),
-                      Text('${_fmtVol(s.totalVolume)} kg', style: labelStyle),
+                      Text('${s.exerciseCount} ej.',
+                          style: TextStyle(fontSize: 11, color: ac.textMuted)),
                     ],
                   ),
-                  const SizedBox(height: 10),
-                  // Exercise summary list
-                  ...s.exercises.map(
-                    (g) => Padding(
-                      padding: const EdgeInsets.only(bottom: 4),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              g.exerciseName,
-                              style: theme.textTheme.bodySmall,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
+                  if (s.exercises.isNotEmpty) ...[
+                    const SizedBox(height: 10),
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 4,
+                      children: s.exercises.take(4).map((ex) {
+                        return Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: ac.glassBorderBase.withValues(alpha: 0.06),
+                            borderRadius: BorderRadius.circular(999),
+                            border: Border.all(
+                                color: ac.glassBorderBase.withValues(alpha: 0.10)),
+                          ),
+                          child: Text(
+                            '${ex.exerciseName} ${_setsLabel(ex.sets)}',
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: ac.textMedium,
+                              fontWeight: FontWeight.w500,
                             ),
                           ),
-                          const SizedBox(width: 8),
-                          Text(
-                            _setsLabel(g.sets),
-                            style: theme.textTheme.labelSmall?.copyWith(
-                              color: cs.primary,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ],
-                      ),
+                        );
+                      }).toList(),
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  // Expand chevron
+                  ],
+                  const SizedBox(height: 8),
                   Align(
                     alignment: Alignment.centerRight,
                     child: Icon(
-                      _expanded ? Icons.expand_less : Icons.expand_more,
+                      _expanded
+                          ? Icons.keyboard_arrow_up_rounded
+                          : Icons.keyboard_arrow_down_rounded,
                       size: 18,
-                      color: cs.onSurfaceVariant,
+                      color: ac.textDisabled,
                     ),
                   ),
                 ],
               ),
             ),
           ),
-          // ── Expanded detail ─────────────────────────────────────────────
           if (_expanded) ...[
-            const Divider(height: 1),
+            Divider(height: 1, color: ac.dividerColor),
             _SessionDetail(session: s),
-            const Divider(height: 1),
+            Divider(height: 1, color: ac.dividerColor),
             _DeleteBar(session: s, onDeleted: widget.onDeleted),
           ],
         ],
@@ -237,7 +232,7 @@ class _SessionCardState extends State<_SessionCard> {
   }
 }
 
-// ─── Session detail (exercise tables) ────────────────────────────────────────
+// ─── Session detail ───────────────────────────────────────────────────────────
 
 class _SessionDetail extends StatelessWidget {
   const _SessionDetail({required this.session});
@@ -245,29 +240,27 @@ class _SessionDetail extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final cs = theme.colorScheme;
+    final ac = AppColors.of(context);
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+      padding: const EdgeInsets.fromLTRB(16, 10, 16, 14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: session.exercises.map((g) {
           return Padding(
-            padding: const EdgeInsets.only(top: 8),
+            padding: const EdgeInsets.only(top: 10),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 4),
-                  child: Text(
-                    g.exerciseName,
-                    style: theme.textTheme.labelMedium?.copyWith(
-                      fontWeight: FontWeight.w700,
-                      color: cs.primary,
-                    ),
+                Text(
+                  g.exerciseName,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: kSeed,
                   ),
                 ),
+                const SizedBox(height: 6),
                 Table(
                   columnWidths: const {
                     0: IntrinsicColumnWidth(),
@@ -276,23 +269,21 @@ class _SessionDetail extends StatelessWidget {
                   },
                   children: [
                     TableRow(
-                      decoration:
-                          BoxDecoration(color: cs.surfaceContainerHighest),
+                      decoration: BoxDecoration(
+                        color: ac.glassBorderBase.withValues(alpha: 0.07),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
                       children: [
-                        _th('Serie'),
-                        _th('Peso (kg)'),
-                        _th('Reps'),
+                        _th('Serie', ac),
+                        _th('Peso (kg)', ac),
+                        _th('Reps', ac),
                       ],
                     ),
-                    ...g.sets.map((set) => TableRow(
-                          children: [
-                            _td('${set.setNumber}'),
-                            _td(set.weight != null
-                                ? _fmtNum(set.weight!)
-                                : '—'),
-                            _td(set.reps != null ? '${set.reps}' : '—'),
-                          ],
-                        )),
+                    ...g.sets.map((set) => TableRow(children: [
+                          _td('${set.setNumber}', ac),
+                          _td(set.weight != null ? _fmtNum(set.weight!) : '—', ac),
+                          _td(set.reps != null ? '${set.reps}' : '—', ac),
+                        ])),
                   ],
                 ),
               ],
@@ -304,15 +295,22 @@ class _SessionDetail extends StatelessWidget {
   }
 }
 
-Widget _th(String t) => Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      child: Text(t,
-          style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600)),
+Widget _th(String t, AppColors ac) => Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+      child: Text(
+        t,
+        style: TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.w700,
+          color: ac.textMuted,
+          letterSpacing: 0.3,
+        ),
+      ),
     );
 
-Widget _td(String t) => Padding(
+Widget _td(String t, AppColors ac) => Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      child: Text(t, style: const TextStyle(fontSize: 12)),
+      child: Text(t, style: TextStyle(fontSize: 12, color: ac.textMedium)),
     );
 
 // ─── Delete bar ───────────────────────────────────────────────────────────────
@@ -340,8 +338,7 @@ class _DeleteBar extends StatelessWidget {
                 context: context,
                 builder: (_) => AlertDialog(
                   title: const Text('Eliminar entreno'),
-                  content: const Text(
-                      '¿Seguro? Esta acción no se puede deshacer.'),
+                  content: const Text('¿Seguro? Esta acción no se puede deshacer.'),
                   actions: [
                     TextButton(
                       onPressed: () => Navigator.pop(context, false),
@@ -369,27 +366,15 @@ class _DeleteBar extends StatelessWidget {
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 const _months = [
-  '',
-  'ene',
-  'feb',
-  'mar',
-  'abr',
-  'may',
-  'jun',
-  'jul',
-  'ago',
-  'sep',
-  'oct',
-  'nov',
-  'dic',
+  '', 'ene', 'feb', 'mar', 'abr', 'may', 'jun',
+  'jul', 'ago', 'sep', 'oct', 'nov', 'dic',
 ];
-
 const _weekdays = ['', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb', 'dom'];
 
 String _fmtDate(String iso) {
   try {
     final dt = DateTime.parse(iso).toLocal();
-    return '${_weekdays[dt.weekday]} ${dt.day} ${_months[dt.month]} ${dt.year}';
+    return '${_weekdays[dt.weekday]} ${dt.day} ${_months[dt.month]}';
   } catch (_) {
     return iso;
   }
@@ -402,26 +387,18 @@ String _fmtDur(int sec) {
   return m > 0 ? '${h}h ${m}min' : '${h}h';
 }
 
-String _fmtVol(double v) {
-  if (v >= 1000) return '${(v / 1000).toStringAsFixed(1)}k';
-  return v.toStringAsFixed(0);
-}
-
 String _fmtNum(double v) {
   if (v == v.truncateToDouble()) return v.toInt().toString();
   return v.toStringAsFixed(1);
 }
 
-// "3×12" — uses most-common rep count across done sets
 String _setsLabel(List<HistoryLog> sets) {
   final count = sets.length;
   if (count == 0) return '—';
   final reps = sets.map((s) => s.reps).whereType<int>().toList();
   if (reps.isEmpty) return '$count series';
   final freq = <int, int>{};
-  for (final r in reps) {
-    freq[r] = (freq[r] ?? 0) + 1;
-  }
+  for (final r in reps) { freq[r] = (freq[r] ?? 0) + 1; }
   final mostCommon =
       freq.entries.reduce((a, b) => a.value >= b.value ? a : b).key;
   return '$count×$mostCommon';

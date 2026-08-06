@@ -79,6 +79,8 @@ class ArticlesRepository {
     'cuanta-proteina-por-dia',
     'descansar-bien-importa',
     'constancia-vs-motivacion',
+    'mitos-del-gimnasio',
+    'suplementos-que-funcionan',
   ];
 
   Future<ArticlesData> load() async {

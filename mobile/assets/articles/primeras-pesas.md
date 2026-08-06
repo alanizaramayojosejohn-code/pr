@@ -1,25 +1,25 @@
 ---
 title: "Tus primeras pesas: por dónde empezar"
 category: entrenamiento
-excerpt: "Si nunca agarraste un fierro, esto es lo primero que necesitás saber para no lesionarte y avanzar de verdad."
+excerpt: "Si nunca levantaste pesas, esto es lo primero que necesitas saber para no lesionarte y avanzar de verdad."
 cover: "articulo4.png"
 published: 2026-04-25
 author: "PR Team"
 ---
 
-Arrancar en el gym puede agobiar: máquinas raras, gente que parece saber todo, mil ejercicios distintos. La buena noticia es que los principios para principiantes son **muy pocos** — y si los seguís, vas a progresar las primeras 12 semanas casi sin pensar pes.
+Arrancar en el gimnasio puede resultar abrumador: máquinas desconocidas, gente que parece saber todo, cientos de ejercicios distintos. La buena noticia es que los principios para principiantes son **muy pocos** — y si los sigues, vas a progresar durante las primeras 12 semanas de forma consistente.
 
-## 1. Aprendé técnica antes que peso
+## 1. Aprende técnica antes que peso
 
-El cuerpo se adapta a lo que repetís. Si repetís un movimiento mal hecho con peso, te enseñás a moverte mal. **Las primeras 2-3 semanas usá menos peso del que podés** y concentrate en:
+El cuerpo se adapta a lo que repites. Si repites un movimiento mal ejecutado con peso, te estás enseñando a moverte mal. **Las primeras 2-3 semanas usa menos peso del que puedes** y concéntrate en:
 
-- Postura inicial (columna neutra, hombros para atrás).
+- Postura inicial (columna neutra, hombros hacia atrás).
 - Recorrido completo del movimiento.
 - Velocidad controlada — bajar el peso debe tardar el doble que subirlo.
 
-## 2. Empezá con ejercicios básicos
+## 2. Empieza con ejercicios básicos
 
-No necesitás 20 ejercicios. Con estos 6 cubrís todo el cuerpo:
+No necesitas 20 ejercicios. Con estos 6 cubres todo el cuerpo:
 
 - **Empuje horizontal** — Press de banca o flexiones
 - **Empuje vertical** — Press militar
@@ -28,33 +28,33 @@ No necesitás 20 ejercicios. Con estos 6 cubrís todo el cuerpo:
 - **Pierna dominante** — Sentadilla
 - **Cadera dominante** — Peso muerto
 
-Estos 6 patrones son la base de cualquier programa serio, de a de veras.
+Estos 6 patrones son la base de cualquier programa serio.
 
-## 3. Frecuencia: 3 días por semana es perfecto
+## 3. Frecuencia: 3 días por semana es suficiente
 
-Más no es mejor pes. Tres sesiones de 45-60 minutos por semana, con un día de descanso en el medio, supera a 5 sesiones flojas. **El descanso es donde tu cuerpo se construye**, no en el gym.
+Más no siempre es mejor. Tres sesiones de 45-60 minutos por semana, con un día de descanso entre ellas, supera a cinco sesiones de baja intensidad. **El descanso es donde el cuerpo se construye**, no en el gimnasio.
 
-## 4. Llevá registro
+## 4. Lleva registro
 
-Anotá cuánto peso, cuántas series, cuántas repeticiones. Para eso está esta app — usala pes. Si no medís, no sabés si estás progresando, no te hagas.
+Anota cuánto peso, cuántas series, cuántas repeticiones. Para eso está esta app — úsala. Si no mides, no sabes si estás progresando.
 
-## 5. Tené paciencia con los resultados
+## 5. Ten paciencia con los resultados
 
-Los cambios visibles en el cuerpo se notan recién a las 8-12 semanas. Lo que SÍ vas a sentir antes:
+Los cambios visibles en el cuerpo se notan recién a las 8-12 semanas. Lo que sí vas a sentir antes:
 
 - Más fuerza (semanas 1-3).
 - Mejor postura y más energía (semanas 2-4).
-- Mejor sueño (semanas 1-2).
+- Mejor calidad de sueño (semanas 1-2).
 
 ## Errores típicos del principiante
 
 | Error | Cómo evitarlo |
 |---|---|
-| Querer levantar mucho peso de entrada | Subí peso solo cuando podés hacer todas las reps con buena técnica |
-| Saltarte el calentamiento | 5 minutos de movilidad + 1-2 series livianas del ejercicio |
-| Compararte con los demás | Cada cuerpo arranca distinto. Comparate con vos mismo del mes pasado |
-| Cambiar de programa cada 2 semanas | Quedate con un plan al menos 6-8 semanas antes de evaluar |
+| Querer levantar mucho peso desde el principio | Sube el peso solo cuando puedes hacer todas las repeticiones con buena técnica |
+| Saltarte el calentamiento | 5 minutos de movilidad + 1-2 series ligeras del ejercicio |
+| Compararte con los demás | Cada cuerpo arranca distinto. Compárate contigo mismo del mes pasado |
+| Cambiar de programa cada 2 semanas | Sigue un plan al menos 6-8 semanas antes de evaluar |
 
 ---
 
-Si tenés dudas concretas, preguntá. La app está acá para ayudarte a arrancar bien.
+Si tienes dudas concretas, consulta. La app está aquí para ayudarte a empezar bien.

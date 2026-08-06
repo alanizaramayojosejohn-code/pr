@@ -74,14 +74,33 @@ class HistoryRepository {
     final ids = rawSessions.map((s) => s['id'] as String).toList();
     final logsRes = await supabase
         .from('exercise_logs')
-        .select('session_id, exercise_id, set_number, weight, reps, rest_seconds_used, Exercise(name)')
+        .select('session_id, exercise_id, set_number, weight, reps, rest_seconds_used')
         .inFilter('session_id', ids)
         .order('set_number', ascending: true);
 
     final rawLogs = (logsRes as List).whereType<Map<String, dynamic>>().toList();
+
+    // Fetch exercise names separately to avoid FK join dependency
+    final exerciseIds = rawLogs
+        .map((l) => (l['exercise_id'] as num).toInt())
+        .toSet()
+        .toList();
+    final nameMap = <int, String>{};
+    if (exerciseIds.isNotEmpty) {
+      final exRes = await supabase
+          .from('Exercise')
+          .select('id, name')
+          .inFilter('id', exerciseIds);
+      for (final row in (exRes as List).whereType<Map<String, dynamic>>()) {
+        nameMap[(row['id'] as num).toInt()] = (row['name'] as String?) ?? '—';
+      }
+    }
+
     final logsBySession = <String, List<Map<String, dynamic>>>{};
     for (final l in rawLogs) {
       final sid = l['session_id'] as String;
+      // Inject the name so _buildSession can use it
+      l['_exerciseName'] = nameMap[(l['exercise_id'] as num).toInt()] ?? '—';
       logsBySession.putIfAbsent(sid, () => []).add(l);
     }
 
@@ -99,7 +118,7 @@ class HistoryRepository {
 
     for (final l in logs) {
       final exId = (l['exercise_id'] as num).toInt();
-      final exName = (l['Exercise'] as Map?)?['name'] as String? ?? '—';
+      final exName = l['_exerciseName'] as String? ?? '—';
       final w = l['weight'] == null ? null : (l['weight'] as num).toDouble();
       final r = l['reps'] == null ? null : (l['reps'] as num).toInt();
       final rest = l['rest_seconds_used'] == null

@@ -123,10 +123,11 @@ class _ExercisePickerSheetState extends ConsumerState<ExercisePickerSheet> {
       builder: (context, scroll) {
         return Container(
           decoration: BoxDecoration(
-            color: const Color(0xFF0D0D18),
+            color: AppColors.of(context).bg,
             borderRadius:
                 const BorderRadius.vertical(top: Radius.circular(24)),
-            border: Border.all(color: kGlassBorder),
+            border: Border.all(
+                color: AppColors.of(context).glassBorderBase.withValues(alpha: 0.10)),
           ),
           child: Column(
             children: [
@@ -137,7 +138,7 @@ class _ExercisePickerSheetState extends ConsumerState<ExercisePickerSheet> {
                   width: 36,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.2),
+                    color: AppColors.of(context).glassBorderBase.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -147,18 +148,18 @@ class _ExercisePickerSheetState extends ConsumerState<ExercisePickerSheet> {
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 child: Row(
                   children: [
-                    const Text(
+                    Text(
                       'Agregar ejercicio',
                       style: TextStyle(
                         fontWeight: FontWeight.w700,
                         fontSize: 16,
-                        color: Color(0xF2FFFFFF),
+                        color: AppColors.of(context).textPrimary,
                       ),
                     ),
                     const Spacer(),
                     IconButton(
-                      icon: const Icon(Icons.close,
-                          color: Color(0x99FFFFFF), size: 20),
+                      icon: Icon(Icons.close,
+                          color: AppColors.of(context).textSecondary, size: 20),
                       onPressed: () => Navigator.pop(context),
                     ),
                   ],
@@ -170,15 +171,16 @@ class _ExercisePickerSheetState extends ConsumerState<ExercisePickerSheet> {
                   controller: _searchCtrl,
                   autofocus: true,
                   onChanged: _onQueryChanged,
-                  style: const TextStyle(color: Color(0xF2FFFFFF)),
+                  style: TextStyle(color: AppColors.of(context).textPrimary),
                   decoration: InputDecoration(
                     hintText: 'Buscar ejercicio…',
-                    prefixIcon: const Icon(Icons.search,
-                        color: Color(0x66FFFFFF), size: 20),
+                    prefixIcon: Icon(Icons.search,
+                        color: AppColors.of(context).textDisabled, size: 20),
                     suffixIcon: _searchCtrl.text.isNotEmpty
                         ? IconButton(
-                            icon: const Icon(Icons.clear,
-                                color: Color(0x66FFFFFF), size: 18),
+                            icon: Icon(Icons.clear,
+                                color: AppColors.of(context).textDisabled,
+                                size: 18),
                             onPressed: () {
                               _searchCtrl.clear();
                               _onQueryChanged('');
@@ -197,8 +199,8 @@ class _ExercisePickerSheetState extends ConsumerState<ExercisePickerSheet> {
                         ? Center(
                             child: Text(
                               'Sin resultados para "${_searchCtrl.text}"',
-                              style: const TextStyle(
-                                  color: Color(0x66FFFFFF)),
+                              style: TextStyle(
+                                  color: AppColors.of(context).textDisabled),
                             ),
                           )
                         : ListView.builder(
@@ -222,28 +224,27 @@ class _ExercisePickerSheetState extends ConsumerState<ExercisePickerSheet> {
                                   child: Container(
                                     width: 44,
                                     height: 44,
-                                    color: kGlassFill,
+                                    color: AppColors.of(context).glassBorderBase.withValues(alpha: 0.06),
                                     child: ex.imageUrl != null &&
                                             ex.imageUrl!.isNotEmpty
                                         ? Image.network(
                                             ex.imageUrl!,
                                             fit: BoxFit.cover,
                                             errorBuilder:
-                                                (_, _, _) => const Icon(
+                                                (_, _, _) => Icon(
                                                     Icons.fitness_center,
-                                                    color:
-                                                        Color(0x66FFFFFF),
+                                                    color: AppColors.of(context).textDisabled,
                                                     size: 20),
                                           )
-                                        : const Icon(Icons.fitness_center,
-                                            color: Color(0x66FFFFFF),
+                                        : Icon(Icons.fitness_center,
+                                            color: AppColors.of(context).textDisabled,
                                             size: 20),
                                   ),
                                 ),
                                 title: Text(
                                   ex.name,
-                                  style: const TextStyle(
-                                    color: Color(0xF2FFFFFF),
+                                  style: TextStyle(
+                                    color: AppColors.of(context).textPrimary,
                                     fontWeight: FontWeight.w500,
                                     fontSize: 14,
                                   ),

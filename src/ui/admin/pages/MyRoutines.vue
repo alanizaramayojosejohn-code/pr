@@ -28,17 +28,6 @@
         </span>
         <h2 class="rcard__name">{{ r.name }}</h2>
         <p class="rcard__stats">{{ statsLabel(r) }}</p>
-        <button
-          class="rcard__start"
-          :class="{ 'rcard__start--primary': r.day_of_week === todayDow }"
-          :disabled="starting"
-          @click.stop="onStart(r)"
-        >
-          <svg viewBox="0 0 24 24" class="rcard__start-ic" aria-hidden="true">
-            <polygon points="7,5 19,12 7,19" fill="currentColor" />
-          </svg>
-          Empezar
-        </button>
       </article>
 
       <button class="rcard rcard--add" :disabled="creating" @click="onCreate">
@@ -68,13 +57,6 @@
         >{{ selectedRoutine.name }}</h1>
         <p>{{ statsLabel(selectedRoutine) }}</p>
       </div>
-      <button
-        class="redit__start"
-        :disabled="starting || !selectedRoutine.routine_exercises?.length"
-        @click="onStart(selectedRoutine)"
-      >
-        Empezar
-      </button>
     </header>
 
     <div class="redit__day">
@@ -141,7 +123,6 @@ import { computed, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import { useRoutines, DAYS } from "@/composables/useRoutines";
 import type { Routine } from "@/composables/useRoutines";
-import { useWorkout } from "@/composables/useWorkout";
 
 const {
   routines,
@@ -156,10 +137,8 @@ const {
   reorderRoutine,
 } = useRoutines();
 
-const { startFromRoutine } = useWorkout();
 const router = useRouter();
 
-const starting = ref(false);
 const creating = ref(false);
 const selectedId = ref<string | null>(null);
 const todayDow = new Date().getDay();
@@ -239,17 +218,6 @@ async function onDelete(r: Routine) {
   if (ok) selectedId.value = null;
 }
 
-async function onStart(r: Routine) {
-  if (!r.routine_exercises?.length) {
-    alert("Añade al menos un ejercicio antes de empezar.");
-    return;
-  }
-  starting.value = true;
-  const s = await startFromRoutine(r.id);
-  starting.value = false;
-  if (s) router.push({ name: "entrenar", params: { sessionId: s.id } });
-}
-
 async function onRemoveRE(id: string) {
   await removeRoutineExercise(id);
 }
@@ -327,6 +295,9 @@ async function onReChange(
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
+}
+@media (max-width: 380px) {
+  .routines__grid { grid-template-columns: 1fr; }
 }
 
 .rcard {

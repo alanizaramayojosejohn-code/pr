@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../theme/app_theme.dart';
 import 'data/articles_repository.dart';
 import 'providers.dart';
 
@@ -16,33 +17,33 @@ class LearnPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final asyncData = ref.watch(articlesProvider);
-    final theme = Theme.of(context);
-    final cs = theme.colorScheme;
+    final ac = AppColors.of(context);
 
     return asyncData.when(
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (e, _) => Center(child: Text(e.toString())),
       data: (data) {
-        final topPad =
-            MediaQuery.of(context).padding.top + kToolbarHeight + 8;
+        final topPad = MediaQuery.of(context).padding.top + kToolbarHeight + 8;
         return ListView(
           padding: EdgeInsets.fromLTRB(20, topPad, 20, 100),
           children: [
             Text(
               'Aprender',
-              style: theme.textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.w700,
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.w800,
                 letterSpacing: -0.4,
+                color: ac.textPrimary,
               ),
             ),
             const SizedBox(height: 4),
             Text(
-              'Guías cortas para empezar a entrenar y comer mejor.',
-              style: theme.textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant),
+              'Guías cortas para entrenar y comer mejor.',
+              style: TextStyle(fontSize: 13, color: ac.textMuted),
             ),
             const SizedBox(height: 16),
             SizedBox(
-              height: 36,
+              height: 34,
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 itemCount: data.categories.length,
@@ -58,18 +59,23 @@ class LearnPage extends ConsumerWidget {
             if (data.articles.isEmpty)
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 32),
-                child: Center(
-                  child: Text(
-                    'Aún no hay artículos publicados.',
-                    style: theme.textTheme.bodyMedium?.copyWith(color: cs.onSurfaceVariant),
-                  ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.menu_book_rounded, size: 48, color: ac.textDisabled),
+                    const SizedBox(height: 12),
+                    Text(
+                      'Aún no hay artículos publicados.',
+                      style: TextStyle(color: ac.textMuted),
+                    ),
+                  ],
                 ),
               )
             else
               ...data.articles.map(
                 (a) => Padding(
                   padding: const EdgeInsets.only(bottom: 12),
-                  child: _ArticleCard(article: a, categoryName: ''),
+                  child: _ArticleCard(article: a),
                 ),
               ),
           ],
@@ -79,6 +85,8 @@ class LearnPage extends ConsumerWidget {
   }
 }
 
+// ── Category pill ─────────────────────────────────────────────────────────────
+
 class _CategoryPill extends StatelessWidget {
   const _CategoryPill({required this.name, required this.count});
   final String name;
@@ -86,13 +94,13 @@ class _CategoryPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
+    final ac = AppColors.of(context);
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 0),
       decoration: BoxDecoration(
-        color: cs.surfaceContainerHigh,
+        color: ac.glassBorderBase.withValues(alpha: 0.07),
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: cs.outlineVariant),
+        border: Border.all(color: ac.glassBorderBase.withValues(alpha: 0.12)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -100,18 +108,25 @@ class _CategoryPill extends StatelessWidget {
           Text(
             name,
             style: TextStyle(
-              fontSize: 13,
+              fontSize: 12,
               fontWeight: FontWeight.w600,
-              color: cs.onSurface,
+              color: ac.textMedium,
             ),
           ),
-          const SizedBox(width: 6),
-          Text(
-            '$count',
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
-              color: cs.onSurfaceVariant,
+          const SizedBox(width: 5),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+            decoration: BoxDecoration(
+              color: kSeed.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(999),
+            ),
+            child: Text(
+              '$count',
+              style: const TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w700,
+                color: kSeed,
+              ),
             ),
           ),
         ],
@@ -120,29 +135,26 @@ class _CategoryPill extends StatelessWidget {
   }
 }
 
+// ── Article card ──────────────────────────────────────────────────────────────
+
 class _ArticleCard extends StatelessWidget {
-  const _ArticleCard({required this.article, required this.categoryName});
+  const _ArticleCard({required this.article});
   final Article article;
-  final String categoryName;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final cs = theme.colorScheme;
+    final ac = AppColors.of(context);
 
-    return Material(
-      color: cs.surfaceContainerLow,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: cs.outlineVariant),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: () => context.push('/aprender/${article.slug}'),
+    return GestureDetector(
+      onTap: () => context.push('/aprender/${article.slug}'),
+      child: GlassCard(
+        radius: 16,
+        padding: EdgeInsets.zero,
+        borderOpacity: 0.10,
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ── Cover image ──
+            // ── Cover image ─────────────────────────────────────────────
             ClipRRect(
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(16),
@@ -155,25 +167,26 @@ class _ArticleCard extends StatelessWidget {
                     ? Image.asset(
                         'assets/img/${article.cover}',
                         fit: BoxFit.cover,
-                        errorBuilder: (_, _, _) => _CoverFallback(cs: cs),
+                        errorBuilder: (_, _, _) => _CoverFallback(ac: ac),
                       )
-                    : _CoverFallback(cs: cs),
+                    : _CoverFallback(ac: ac),
               ),
             ),
-            // ── Body ──
+            // ── Body ────────────────────────────────────────────────────
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
+                padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
                       article.title,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.titleSmall?.copyWith(
+                      style: TextStyle(
+                        fontSize: 13,
                         fontWeight: FontWeight.w700,
+                        color: ac.textPrimary,
                         height: 1.25,
                       ),
                     ),
@@ -182,17 +195,22 @@ class _ArticleCard extends StatelessWidget {
                       article.excerpt,
                       maxLines: 3,
                       overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: cs.onSurfaceVariant,
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: ac.textSecondary,
                         height: 1.4,
                       ),
                     ),
                     const SizedBox(height: 6),
-                    Text(
-                      '${formatDate(article.published)} · ${article.readingMinutes} min',
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: cs.onSurfaceVariant,
-                      ),
+                    Row(
+                      children: [
+                        Icon(Icons.schedule_rounded, size: 11, color: ac.textDisabled),
+                        const SizedBox(width: 3),
+                        Text(
+                          '${article.readingMinutes} min',
+                          style: TextStyle(fontSize: 10, color: ac.textDisabled),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -206,14 +224,14 @@ class _ArticleCard extends StatelessWidget {
 }
 
 class _CoverFallback extends StatelessWidget {
-  const _CoverFallback({required this.cs});
-  final ColorScheme cs;
+  const _CoverFallback({required this.ac});
+  final AppColors ac;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: cs.surfaceContainerHigh,
-      child: Icon(Icons.menu_book_rounded, size: 32, color: cs.onSurfaceVariant.withValues(alpha: 0.4)),
+      color: ac.glassBorderBase.withValues(alpha: 0.07),
+      child: Icon(Icons.menu_book_rounded, size: 32, color: ac.textDisabled),
     );
   }
 }

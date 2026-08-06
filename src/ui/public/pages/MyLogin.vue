@@ -2,55 +2,57 @@
   <div class="login">
     <div class="login__brand">
       <span class="login__brand-dot"></span>
-      <span class="login__brand-name">GYM</span>
+      <span class="login__brand-name">PR</span>
     </div>
-    <form class="login__card" @submit.prevent="handleSubmit">
-      <h1 class="login__title">Iniciar sesión</h1>
-      <p class="login__subtitle">Seguí tu progreso en el gimnasio</p>
 
-      <label class="login__field">
-        <span>Email</span>
-        <input
-          v-model.trim="email"
-          type="email"
-          autocomplete="email"
-          required
-          :disabled="loading"
-          @input="clearError"
-        />
-      </label>
+    <div class="login__card">
+      <h1 class="login__title">Panel de administración</h1>
+      <p class="login__subtitle">Acceso exclusivo para administradores</p>
 
-      <label class="login__field">
-        <span>Contraseña</span>
-        <input
-          v-model="password"
-          type="password"
-          autocomplete="current-password"
-          minlength="6"
-          required
-          :disabled="loading"
-          @input="clearError"
-        />
-      </label>
+      <form class="login__admin-form" @submit.prevent="handleSubmit">
+        <label class="login__field">
+          <span>Email</span>
+          <input
+            v-model.trim="email"
+            type="email"
+            autocomplete="email"
+            required
+            :disabled="loading"
+            @input="clearError"
+          />
+        </label>
 
-      <p v-if="blockedMessage" class="login__error">{{ blockedMessage }}</p>
-      <p v-if="localError || error" class="login__error">
-        {{ localError || error }}
-      </p>
+        <label class="login__field">
+          <span>Contraseña</span>
+          <input
+            v-model="password"
+            type="password"
+            autocomplete="current-password"
+            minlength="6"
+            required
+            :disabled="loading"
+            @input="clearError"
+          />
+        </label>
 
-      <button class="login__submit" type="submit" :disabled="loading || !canSubmit">
-        {{ loading ? "Entrando…" : "Entrar" }}
-      </button>
-    </form>
+        <p v-if="blockedMessage" class="login__error">{{ blockedMessage }}</p>
+        <p v-if="error" class="login__error">{{ error }}</p>
+        <p v-if="localError" class="login__error">{{ localError }}</p>
+
+        <button class="login__submit" type="submit" :disabled="loading || !canSubmit">
+          {{ loading ? 'Entrando…' : 'Entrar' }}
+        </button>
+      </form>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { useAuth } from "@/composables/useAuth";
 import { useRoute, useRouter } from "vue-router";
-import { computed, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 
-const { login, error, loading, blockedMessage } = useAuth();
+const { login, error, loading, blockedMessage, isLoggedIn } = useAuth();
 const router = useRouter();
 const route = useRoute();
 
@@ -62,9 +64,18 @@ const canSubmit = computed(
   () => email.value.length > 0 && password.value.length >= 6
 );
 
+// Al abrir el sitio, useAuth expulsa cualquier sesión guardada que no sea de un
+// admin y deja el motivo en blockedMessage. Ese mensaje es de la sesión vieja,
+// no de quien está por entrar: mostrarlo en un formulario en blanco confunde.
+// Si el que entra es el rechazado, su propio intento lo vuelve a poner.
+onMounted(() => {
+  blockedMessage.value = null;
+});
+
 function clearError() {
   localError.value = null;
   error.value = null;
+  blockedMessage.value = null;
 }
 
 async function handleSubmit() {
@@ -80,7 +91,9 @@ async function handleSubmit() {
   }
 
   await login(email.value, password.value);
-  if (error.value) return;
+  // Un no-admin autentica bien pero login() lo desloguea acto seguido, así que
+  // hay que mirar la sesión y no solo `error`.
+  if (error.value || !isLoggedIn.value) return;
 
   const redirect = typeof route.query.redirect === "string" ? route.query.redirect : "/dashboard";
   router.push(redirect);
@@ -140,6 +153,13 @@ async function handleSubmit() {
   margin: 0 0 4px;
   color: var(--text-tertiary);
   font-size: 13px;
+}
+
+/* Admin form */
+.login__admin-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
 }
 .login__field {
   display: flex;

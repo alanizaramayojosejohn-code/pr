@@ -38,6 +38,7 @@ class WorkoutRepository {
         .from('workout_sessions')
         .select('id')
         .eq('routine_id', routineId)
+        .eq('user_id', supabase.auth.currentUser!.id)
         .neq('id', currentSessionId)
         .order('started_at', ascending: false)
         .limit(1)

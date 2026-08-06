@@ -37,9 +37,16 @@ class WeeklyCount {
 
 class ProgressRepository {
   Future<List<WeightPoint>> fetchWeightSeries() async {
+    // El filtro por user_id no es redundante: un instructor puede leer las
+    // mediciones de sus alumnos, así que sin él su propia curva de peso
+    // mezclaría datos ajenos.
+    final userId = supabase.auth.currentUser?.id;
+    if (userId == null) return [];
+
     final res = await supabase
         .from('body_measurements')
         .select('measured_at, weight_kg')
+        .eq('user_id', userId)
         .not('weight_kg', 'is', null)
         .order('measured_at', ascending: true);
 

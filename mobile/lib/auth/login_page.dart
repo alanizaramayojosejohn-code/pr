@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../supabase/client.dart';
@@ -47,7 +48,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     try {
       await supabase.auth.signInWithOAuth(
         OAuthProvider.google,
-        redirectTo: 'com.davidmorales.pr://callback',
+        redirectTo: 'com.alanizjose.pr://callback',
       );
     } on AuthException catch (e) {
       if (mounted) setState(() => _error = e.message);
@@ -60,10 +61,11 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    final ac = AppColors.of(context);
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.light,
+      value: ac.overlayStyle,
       child: Scaffold(
-        backgroundColor: kBg,
+        backgroundColor: ac.bg,
         body: AppGradient(
           child: SafeArea(
             child: Center(
@@ -78,42 +80,35 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       // Brand
                       Column(
                         children: [
-                          Container(
-                            width: 56,
-                            height: 56,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: kSeed.withValues(alpha: 0.15),
-                              border: Border.all(
-                                  color: kSeed.withValues(alpha: 0.35),
-                                  width: 1.5),
-                            ),
-                            alignment: Alignment.center,
-                            child: const Text(
-                              '●',
-                              style: TextStyle(color: kSeed, fontSize: 20),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(20),
+                            child: Image.asset(
+                              'assets/img/logo.webp',
+                              width: 80,
+                              height: 80,
+                              fit: BoxFit.cover,
                             ),
                           ),
                           const SizedBox(height: 16),
-                          const Text(
+                          Text(
                             'PR',
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 32,
                               fontWeight: FontWeight.w900,
                               letterSpacing: 8,
-                              color: Color(0xF2FFFFFF),
+                              color: ac.textPrimary,
                             ),
                           ),
                           const SizedBox(height: 6),
-                          const Text(
+                          Text(
                             'Personal Record',
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w500,
                               letterSpacing: 2,
-                              color: Color(0x66FFFFFF),
+                              color: ac.textDisabled,
                             ),
                           ),
                         ],
@@ -127,14 +122,14 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                           children: [
                             TextField(
                               controller: _email,
-                              decoration: const InputDecoration(
+                              decoration: InputDecoration(
                                 labelText: 'Email',
                                 labelStyle:
-                                    TextStyle(color: Color(0x99FFFFFF)),
+                                    TextStyle(color: ac.textSecondary),
                                 prefixIcon: Icon(Icons.mail_outline_rounded,
-                                    color: Color(0x66FFFFFF), size: 18),
+                                    color: ac.textDisabled, size: 18),
                               ),
-                              style: const TextStyle(color: Color(0xF2FFFFFF)),
+                              style: TextStyle(color: ac.textPrimary),
                               keyboardType: TextInputType.emailAddress,
                               autocorrect: false,
                               enableSuggestions: false,
@@ -142,14 +137,14 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                             const SizedBox(height: 12),
                             TextField(
                               controller: _pass,
-                              decoration: const InputDecoration(
+                              decoration: InputDecoration(
                                 labelText: 'Contraseña',
                                 labelStyle:
-                                    TextStyle(color: Color(0x99FFFFFF)),
+                                    TextStyle(color: ac.textSecondary),
                                 prefixIcon: Icon(Icons.lock_outline_rounded,
-                                    color: Color(0x66FFFFFF), size: 18),
+                                    color: ac.textDisabled, size: 18),
                               ),
-                              style: const TextStyle(color: Color(0xF2FFFFFF)),
+                              style: TextStyle(color: ac.textPrimary),
                               obscureText: true,
                               onSubmitted: (_) => _signIn(),
                             ),
@@ -185,7 +180,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                               children: [
                                 Expanded(
                                   child: Divider(
-                                    color: Colors.white.withValues(alpha: 0.12),
+                                    color: ac.dividerColor,
                                     thickness: 1,
                                   ),
                                 ),
@@ -195,15 +190,14 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                   child: Text(
                                     'o',
                                     style: TextStyle(
-                                      color:
-                                          Colors.white.withValues(alpha: 0.3),
+                                      color: ac.textDisabled,
                                       fontSize: 12,
                                     ),
                                   ),
                                 ),
                                 Expanded(
                                   child: Divider(
-                                    color: Colors.white.withValues(alpha: 0.12),
+                                    color: ac.dividerColor,
                                     thickness: 1,
                                   ),
                                 ),
@@ -216,10 +210,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                 minimumSize: const Size.fromHeight(52),
                                 shape: const StadiumBorder(),
                                 side: BorderSide(
-                                    color:
-                                        Colors.white.withValues(alpha: 0.18)),
-                                foregroundColor:
-                                    Colors.white.withValues(alpha: 0.85),
+                                    color: ac.glassBorderBase
+                                        .withValues(alpha: 0.18)),
+                                foregroundColor: ac.textMedium,
                               ),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
@@ -236,6 +229,19 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                               ),
                             ),
                           ],
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      TextButton(
+                        onPressed: _loading
+                            ? null
+                            : () => context.push('/registro'),
+                        child: Text(
+                          '¿No tenés cuenta? Registrate',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: ac.textMedium,
+                          ),
                         ),
                       ),
                     ],

@@ -117,6 +117,9 @@ class Routine {
     this.notes,
     required this.createdAt,
     required this.exercises,
+    this.isTemplate = false,
+    this.sourceTemplateId,
+    this.assignedBy,
   });
 
   final String id;
@@ -126,6 +129,15 @@ class Routine {
   final String? notes;
   final DateTime createdAt;
   final List<RoutineExercise> exercises;
+
+  /// Plantilla del instructor: no se entrena, se envía a los alumnos.
+  final bool isTemplate;
+
+  /// Plantilla de la que salió esta copia, si la mandó un instructor.
+  final String? sourceTemplateId;
+  final String? assignedBy;
+
+  bool get isAssigned => assignedBy != null;
 
   factory Routine.fromJson(Map<String, dynamic> json) {
     final rawExercises = (json['routine_exercises'] as List?) ?? const [];
@@ -148,6 +160,9 @@ class Routine {
       notes: json['notes'] as String?,
       createdAt: DateTime.parse(json['created_at'] as String),
       exercises: exercises,
+      isTemplate: (json['is_template'] as bool?) ?? false,
+      sourceTemplateId: json['source_template_id'] as String?,
+      assignedBy: json['assigned_by'] as String?,
     );
   }
 }
@@ -204,15 +219,23 @@ class RoutinesRepository {
 
   // ── Routine mutations ────────────────────────────────────────────────────────
 
-  Future<void> createRoutine({
+  /// Devuelve el id de la rutina creada para poder abrirla enseguida.
+  Future<String> createRoutine({
     required String name,
     List<int> daysOfWeek = const [],
+    bool isTemplate = false,
   }) async {
-    await supabase.from('routines').insert({
-      'name': name,
-      'user_id': supabase.auth.currentUser!.id,
-      'days_of_week': daysOfWeek,
-    });
+    final res = await supabase
+        .from('routines')
+        .insert({
+          'name': name,
+          'user_id': supabase.auth.currentUser!.id,
+          'days_of_week': daysOfWeek,
+          'is_template': isTemplate,
+        })
+        .select('id')
+        .single();
+    return res['id'] as String;
   }
 
   Future<void> updateRoutine(String id, Map<String, dynamic> changes) async {

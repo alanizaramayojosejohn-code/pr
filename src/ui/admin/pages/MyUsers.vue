@@ -28,8 +28,18 @@
       <label>
         <span>Rol</span>
         <select v-model="newRole" :disabled="loading">
-          <option value="user">Usuario</option>
+          <option value="user">Cliente</option>
+          <option value="instructor">Instructor</option>
           <option value="admin">Administrador</option>
+        </select>
+      </label>
+      <label v-if="newRole === 'user'">
+        <span>Instructor</span>
+        <select v-model="newInstructorId" :disabled="loading">
+          <option :value="null">Sin instructor</option>
+          <option v-for="i in instructors" :key="i.id" :value="i.id">
+            {{ i.email }}
+          </option>
         </select>
       </label>
       <p v-if="formError" class="users__error">{{ formError }}</p>
@@ -45,6 +55,7 @@
         <tr>
           <th>Email</th>
           <th>Rol</th>
+          <th>Instructor</th>
           <th>Estado</th>
           <th>Expira</th>
           <th></th>
@@ -52,18 +63,32 @@
       </thead>
       <tbody>
         <tr v-for="u in users" :key="u.id">
-          <td>{{ u.email }}</td>
-          <td>
+          <td data-label="Email">{{ u.email }}</td>
+          <td data-label="Rol">
             <select
               :value="u.role"
               :disabled="u.id === currentUserId"
-              @change="onRoleChange(u, ($event.target as HTMLSelectElement).value as 'user' | 'admin')"
+              @change="onRoleChange(u, ($event.target as HTMLSelectElement).value as Role)"
             >
-              <option value="user">user</option>
-              <option value="admin">admin</option>
+              <option v-for="(label, value) in ROLE_LABELS" :key="value" :value="value">
+                {{ label }}
+              </option>
             </select>
           </td>
-          <td>
+          <td data-label="Instructor">
+            <select
+              v-if="u.role === 'user'"
+              :value="u.instructor_id ?? ''"
+              @change="onInstructorChange(u, ($event.target as HTMLSelectElement).value)"
+            >
+              <option value="">Sin instructor</option>
+              <option v-for="i in instructors" :key="i.id" :value="i.id">
+                {{ i.email }}
+              </option>
+            </select>
+            <span v-else class="users__muted">—</span>
+          </td>
+          <td data-label="Estado">
             <select
               :value="u.status"
               :disabled="u.id === currentUserId"
@@ -73,13 +98,13 @@
               <option value="blocked">blocked</option>
             </select>
           </td>
-          <td>
-            <span v-if="u.role === 'admin'" class="users__muted">∞</span>
+          <td data-label="Expira">
+            <span v-if="u.role !== 'user'" class="users__muted">∞</span>
             <span v-else :class="expiryClass(u)">
               {{ formatExpiry(u) }}
             </span>
           </td>
-          <td>
+          <td data-label="">
             <button
               v-if="u.role === 'user'"
               class="users__renew"
@@ -91,7 +116,7 @@
           </td>
         </tr>
         <tr v-if="!loading && users.length === 0">
-          <td colspan="5" class="users__empty">Sin usuarios.</td>
+          <td colspan="6" class="users__empty">Sin usuarios.</td>
         </tr>
       </tbody>
     </table>
@@ -100,9 +125,9 @@
 
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import { useUsers, daysUntil } from "@/composables/useUsers";
+import { useUsers, daysUntil, ROLE_LABELS } from "@/composables/useUsers";
 import { useAuth } from "@/composables/useAuth";
-import type { Profile } from "@/composables/useAuth";
+import type { Profile, Role } from "@/composables/useAuth";
 
 const {
   users,
@@ -110,9 +135,11 @@ const {
   error,
   expiringSoon,
   expiredBlocked,
+  instructors,
   fetchUsers,
   createUser,
   updateRole,
+  assignInstructor,
   updateStatus,
   renewUser,
 } = useUsers();
@@ -122,7 +149,8 @@ const currentUserId = user.value?.id;
 const showForm = ref(false);
 const newEmail = ref("");
 const newPassword = ref("");
-const newRole = ref<"user" | "admin">("user");
+const newRole = ref<Role>("user");
+const newInstructorId = ref<string | null>(null);
 const formError = ref<string | null>(null);
 
 onMounted(fetchUsers);
@@ -137,19 +165,29 @@ async function handleCreate() {
     formError.value = "La contraseña debe tener al menos 6 caracteres.";
     return;
   }
-  const ok = await createUser(newEmail.value, newPassword.value, newRole.value);
+  const ok = await createUser(
+    newEmail.value,
+    newPassword.value,
+    newRole.value,
+    newInstructorId.value
+  );
   if (ok) {
     newEmail.value = "";
     newPassword.value = "";
     newRole.value = "user";
+    newInstructorId.value = null;
     showForm.value = false;
   } else {
     formError.value = error.value;
   }
 }
 
-async function onRoleChange(u: Profile, role: "user" | "admin") {
+async function onRoleChange(u: Profile, role: Role) {
   await updateRole(u.id, role);
+}
+
+async function onInstructorChange(u: Profile, instructorId: string) {
+  await assignInstructor(u.id, instructorId || null);
 }
 
 async function onStatusChange(u: Profile, status: Profile["status"]) {
@@ -374,5 +412,45 @@ function expiryClass(u: Profile): string {
   text-align: center;
   color: var(--text-tertiary);
   padding: 32px 16px !important;
+}
+
+@media (max-width: 600px) {
+  .users__table {
+    background: transparent;
+    border: none;
+  }
+  .users__table thead { display: none; }
+  .users__table,
+  .users__table tbody,
+  .users__table tr,
+  .users__table td { display: block; }
+  .users__table tr {
+    background: var(--surface-1);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    margin-bottom: 8px;
+    overflow: hidden;
+  }
+  .users__table td {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border-subtle);
+    padding: 10px 14px;
+  }
+  .users__table td:last-child { border-bottom: none; }
+  .users__table td::before {
+    content: attr(data-label);
+    font-size: 10px;
+    font-weight: var(--weight-bold);
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+    flex-shrink: 0;
+  }
+  .users__table td[data-label=""]::before { display: none; }
+  .users__table td[data-label=""] { justify-content: flex-end; }
+  .users__empty[colspan] { display: block; }
 }
 </style>

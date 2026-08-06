@@ -31,44 +31,12 @@ const _dayNamesTitle = [
   'Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado',
 ];
 
-const _quotes = [
-  'El dolor de hoy es la fuerza de mañana.',
-  'No pares cuando estés cansado. Para cuando hayas terminado.',
-  'Cada repetición te acerca a tu mejor versión.',
-  'Te vez flaco, leventa unas pesas.',
-  'Tu cuerpo puede hacerlo. Es tu mente a la que tienes que convencer.',
-  'El único entreno malo es el que no hiciste.',
-  'Pequeñas mejoras diarias llevan a resultados sorprendentes.',
-  'No te compares con otros. Compárate con quien eras ayer.',
-  'El éxito no llega de la nada. Llega de un esfuerzo constante.',
-  'Cada serie cuenta. Cada paso importa.',
-  'Los límites existen solo en la mente.',
-  'Ya se te nota el gym, sigue así ;) ',
-  'Sé más fuerte que tus excusas.',
-  'El esfuerzo de hoy es el resultado de mañana.',
-  'Recuerda maximo peso posible con tecnica perfecta!',
-  'Entrena, come, duerme y repite.',
-  'La disciplina es elegir entre lo que quieres ahora y lo que mas quieres.',
-  'Nunca te arrepentirás de un entrenamiento.',
-  'Hoy es un gran día para ser tu mejor versión.',
-  'Cada gota de sudor es un paso más hacia tu meta.',
-  'Los grandes resultados requieren grandes esfuerzos.',
-  'Tu potencial no tiene límites.',
-  'La motivación te arranca, el hábito te mantiene.',
-  'Confía en el proceso.',
-  'Un día a la vez, una rep a la vez.',
-  'El cuerpo logra lo que la mente cree.',
-  'Se consistente. El tiempo hara el resto.',
-  'Desafía tus límites todos los días.',
-  'Cada entrenamiento es una versión mejorada de ti mismo.',
-  '¿Y esa estética? ;)',
-  '¡Deja de perder tiempo y ponte a entrenar!',
-];
-
-String _quoteOfTheDay() {
-  final dayOfYear =
-      DateTime.now().difference(DateTime(DateTime.now().year)).inDays;
-  return _quotes[dayOfYear % _quotes.length];
+String _streakImagePath(int streak) {
+  if (streak == 0) return 'assets/img/Dashboard/falta.webp';
+  if (streak < 7) return 'assets/img/Dashboard/inicio.webp';
+  if (streak < 14) return 'assets/img/Dashboard/racha_una_semana.webp';
+  if (streak < 21) return 'assets/img/Dashboard/racha_dos_semas.webp';
+  return 'assets/img/Dashboard/racha_tres semanas.webp';
 }
 
 class HomePage extends ConsumerWidget {
@@ -76,7 +44,7 @@ class HomePage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final asyncRoutines = ref.watch(routinesProvider);
+    final asyncRoutines = ref.watch(trainingRoutinesProvider);
     final session = ref.watch(currentSessionProvider);
     final email = session?.user.email ?? '';
     final firstName = _firstNameFromEmail(email);
@@ -125,13 +93,13 @@ class HomePage extends ConsumerWidget {
             style: theme.textTheme.headlineSmall?.copyWith(
               fontWeight: FontWeight.w800,
               letterSpacing: -0.5,
-              color: const Color(0xF2FFFFFF),
+              color: AppColors.of(context).textPrimary,
             ),
           ),
           const SizedBox(height: 20),
 
-          // ── Quote of the day ────────────────────────────────────────────
-          _QuoteCard(quote: _quoteOfTheDay()),
+          // ── Streak banner ────────────────────────────────────────────────
+          _StreakBanner(streak: attendance.currentStreak),
           const SizedBox(height: 16),
 
           // ── Attendance stats ─────────────────────────────────────────────
@@ -174,29 +142,21 @@ class HomePage extends ConsumerWidget {
   }
 }
 
-// ── Quote card ────────────────────────────────────────────────────────────────
+// ── Streak banner ─────────────────────────────────────────────────────────────
 
-class _QuoteCard extends StatelessWidget {
-  const _QuoteCard({required this.quote});
-  final String quote;
+class _StreakBanner extends StatelessWidget {
+  const _StreakBanner({required this.streak});
+  final int streak;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.only(left: 14),
-      decoration: BoxDecoration(
-        border: Border(
-          left: BorderSide(color: kSeed.withValues(alpha: 0.7), width: 3),
-        ),
-      ),
-      child: Text(
-        '"$quote"',
-        style: const TextStyle(
-          fontSize: 14,
-          fontStyle: FontStyle.italic,
-          color: Color(0xCCFFFFFF),
-          height: 1.6,
-        ),
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(16),
+      child: Image.asset(
+        _streakImagePath(streak),
+        width: double.infinity,
+        height: 200,
+        fit: BoxFit.cover,
       ),
     );
   }
@@ -216,12 +176,12 @@ class _RecentWorkoutsSection extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
+            Text(
               'ÚLTIMOS ENTRENAMIENTOS',
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w700,
-                color: Color(0x80FFFFFF),
+                color: AppColors.of(context).textMuted,
                 letterSpacing: 1,
               ),
             ),
@@ -268,10 +228,10 @@ class _RecentSessionCard extends StatelessWidget {
               Expanded(
                 child: Text(
                   session.routineName ?? 'Entrenamiento',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
-                    color: Color(0xF2FFFFFF),
+                    color: AppColors.of(context).textPrimary,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -280,9 +240,9 @@ class _RecentSessionCard extends StatelessWidget {
               const SizedBox(width: 8),
               Text(
                 dateLabel,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 11,
-                  color: Color(0x66FFFFFF),
+                  color: AppColors.of(context).textDisabled,
                 ),
               ),
             ],
@@ -290,7 +250,7 @@ class _RecentSessionCard extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             '${session.exerciseCount} ej. · $dur',
-            style: const TextStyle(fontSize: 11, color: Color(0x66FFFFFF)),
+            style: TextStyle(fontSize: 11, color: AppColors.of(context).textDisabled),
           ),
           if (session.exercises.isNotEmpty) ...[
             const SizedBox(height: 8),
@@ -299,19 +259,20 @@ class _RecentSessionCard extends StatelessWidget {
               runSpacing: 4,
               children: session.exercises.take(4).map((ex) {
                 final label = _setsLabel(ex.sets);
+                final ac = AppColors.of(context);
                 return Container(
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
                   decoration: BoxDecoration(
-                    color: kGlassFill,
+                    color: ac.bg,
                     borderRadius: BorderRadius.circular(999),
-                    border: Border.all(color: kGlassBorder),
+                    boxShadow: ac.raised(NeuroSize.sm),
                   ),
                   child: Text(
                     '${ex.exerciseName} $label',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 10,
-                      color: Color(0xCCFFFFFF),
+                      color: ac.textSecondary,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -367,8 +328,8 @@ class _ActiveWorkoutBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GlassCard(
-      borderOpacity: 0.20,
-      fillOpacity: 0.09,
+      accent: true,
+      size: NeuroSize.lg,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -398,10 +359,10 @@ class _ActiveWorkoutBanner extends StatelessWidget {
           const SizedBox(height: 12),
           Text(
             routineName.isEmpty ? 'Cargando…' : routineName,
-            style: const TextStyle(
+            style: TextStyle(
               fontWeight: FontWeight.w700,
               fontSize: 18,
-              color: Color(0xF2FFFFFF),
+              color: AppColors.of(context).textPrimary,
               letterSpacing: -0.3,
             ),
           ),
@@ -435,7 +396,8 @@ class _TodayHero extends ConsumerWidget {
         routine.exercises.fold<int>(0, (a, e) => a + e.targetSets);
 
     return GlassCard(
-      borderOpacity: 0.16,
+      accent: true,
+      size: NeuroSize.lg,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -446,19 +408,19 @@ class _TodayHero extends ConsumerWidget {
           const SizedBox(height: 16),
           Text(
             routine.name,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.w800,
               letterSpacing: -0.5,
-              color: Color(0xF2FFFFFF),
+              color: AppColors.of(context).textPrimary,
             ),
           ),
           const SizedBox(height: 6),
           Text(
             '$exCount ejercicios · $totalSets series',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 13,
-              color: Color(0x80FFFFFF),
+              color: AppColors.of(context).textMuted,
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -497,11 +459,11 @@ class _EmptyHero extends StatelessWidget {
         children: [
           _Pill(text: 'HOY · ${_dayNamesTitle[todayDow].toUpperCase()}'),
           const SizedBox(height: 16),
-          const Text(
-            'No tenés rutina asignada para hoy.',
+          Text(
+            'No tienes rutina asignada para hoy.',
             style: TextStyle(
               fontSize: 15,
-              color: Color(0x99FFFFFF),
+              color: AppColors.of(context).textSecondary,
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -511,8 +473,6 @@ class _EmptyHero extends StatelessWidget {
             style: OutlinedButton.styleFrom(
               minimumSize: const Size.fromHeight(48),
               shape: const StadiumBorder(),
-              foregroundColor: const Color(0xCCFFFFFF),
-              side: const BorderSide(color: kGlassBorderStrong),
             ),
             child: const Text('Elegir una rutina'),
           ),
@@ -649,6 +609,7 @@ class _MiniStat extends StatelessWidget {
       child: GlassCard(
         padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
         radius: 12,
+        size: NeuroSize.sm,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -656,19 +617,19 @@ class _MiniStat extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               value,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w800,
-                color: Color(0xF2FFFFFF),
+                color: AppColors.of(context).textPrimary,
                 height: 1,
               ),
             ),
             const SizedBox(height: 2),
             Text(
               label,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 10,
-                color: Color(0x80FFFFFF),
+                color: AppColors.of(context).textMuted,
                 fontWeight: FontWeight.w600,
               ),
             ),

@@ -12,13 +12,17 @@ class WorkoutBarChart extends StatelessWidget {
   Widget build(BuildContext context) {
     final maxCount =
         weeks.isEmpty ? 0 : weeks.map((w) => w.count).reduce(max);
+    final labelColor = Theme.of(context).colorScheme.onSurfaceVariant
+        .withValues(alpha: 0.5);
     if (maxCount == 0) {
-      return const SizedBox(
+      return SizedBox(
         height: 100,
         child: Center(
           child: Text(
             'Sin entrenamientos registrados aún',
-            style: TextStyle(fontSize: 12, color: Color(0x80FFFFFF)),
+            style: TextStyle(
+                fontSize: 12,
+                color: Theme.of(context).colorScheme.onSurfaceVariant),
           ),
         ),
       );
@@ -26,7 +30,11 @@ class WorkoutBarChart extends StatelessWidget {
     return SizedBox(
       height: 160,
       child: CustomPaint(
-        painter: _BarPainter(weeks: weeks, maxCount: maxCount, color: color),
+        painter: _BarPainter(
+            weeks: weeks,
+            maxCount: maxCount,
+            color: color,
+            labelColor: labelColor),
         child: const SizedBox.expand(),
       ),
     );
@@ -38,10 +46,12 @@ class _BarPainter extends CustomPainter {
     required this.weeks,
     required this.maxCount,
     required this.color,
+    required this.labelColor,
   });
   final List<WeeklyCount> weeks;
   final int maxCount;
   final Color color;
+  final Color labelColor;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -103,7 +113,7 @@ class _BarPainter extends CustomPainter {
           text: w.weekLabel,
           style: TextStyle(
             fontSize: 9,
-            color: Colors.white.withValues(alpha: 0.35),
+            color: labelColor,
           ),
         ),
         textDirection: TextDirection.ltr,
@@ -117,5 +127,6 @@ class _BarPainter extends CustomPainter {
   bool shouldRepaint(_BarPainter old) =>
       old.weeks != weeks ||
       old.maxCount != maxCount ||
-      old.color != color;
+      old.color != color ||
+      old.labelColor != labelColor;
 }
