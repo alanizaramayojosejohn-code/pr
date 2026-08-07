@@ -112,7 +112,32 @@ jobs:
           KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
-          printf '%s' "$KEYSTORE_B64" | base64 -d > mobile/android/app/pr-release.jks
+          jks=mobile/android/app/pr-release.jks
+
+          # Tolerante a saltos de línea, CRLF y espacios del copiado del secret.
+          if ! printf '%s' "$KEYSTORE_B64" | tr -d '[:space:]' | base64 -d > "$jks" 2>/dev/null; then
+            echo "::error::ANDROID_KEYSTORE_BASE64 no es base64 válido."
+            if printf '%s' "$KEYSTORE_B64" | grep -q 'BEGIN'; then
+              echo "El secret parece traer encabezados tipo '-----BEGIN...-----'." \
+                   "Eso pasa con 'certutil -encode'."
+            fi
+            echo "Regeneralo en PowerShell, parado donde está la keystore:"
+            echo '  [Convert]::ToBase64String([IO.File]::ReadAllBytes("pr-release.jks")) | Set-Clipboard'
+            exit 1
+          fi
+
+          # Que sea una keystore de verdad, y que la password y el alias abran.
+          # Sin esto el error aparecería recién dentro de Gradle, minutos después.
+          if ! keytool -list -keystore "$jks" -storepass "$STORE_PASSWORD" \
+                 -alias "$KEY_ALIAS" > /dev/null 2>&1; then
+            echo "::error::No pude abrir la keystore con esos secrets."
+            echo "Revisá que ANDROID_KEYSTORE_PASSWORD y ANDROID_KEY_ALIAS sean" \
+                 "los de pr-release.jks, y que el base64 esté completo" \
+                 "($(stat -c%s "$jks") bytes decodificados)."
+            exit 1
+          fi
+          echo "Keystore OK ($(stat -c%s "$jks") bytes), alias '$KEY_ALIAS' encontrado."
+
           # key.properties lo lee el rootProject (mobile/android); storeFile se
           # resuelve relativo a mobile/android/app.
           cat > mobile/android/key.properties <<EOF
