@@ -160,7 +160,24 @@ jobs:
                  "($(stat -c%s "$jks") bytes decodificados)."
             exit 1
           fi
-          echo "Keystore OK ($(stat -c%s "$jks") bytes), alias '$KEY_ALIAS' encontrado."
+
+          # -list solo usa la password del store. Para probar la de la key hace
+          # falta una operación que use la clave privada: -certreq la usa y no
+          # modifica nada. Sin esto el error aparece recién en :app:packageRelease,
+          # seis minutos después, como "Given final block not properly padded".
+          if ! keytool -certreq -alias "$KEY_ALIAS" -keystore "$jks" \
+                 -storepass "$STORE_PASSWORD" -keypass "$KEY_PASSWORD" > /dev/null 2>&1; then
+            echo "::error::ANDROID_KEY_PASSWORD no abre la key del alias '$KEY_ALIAS'."
+            echo "La keystore y su password están bien; lo que no coincide es la" \
+                 "contraseña de la key."
+            if [ "$STORE_PASSWORD" != "$KEY_PASSWORD" ]; then
+              echo "Ojo: los dos secrets tienen valores distintos. En keystores" \
+                   "PKCS12 —el formato por defecto de keytool desde Java 9— la" \
+                   "contraseña de la key tiene que ser la misma que la del store."
+            fi
+            exit 1
+          fi
+          echo "Keystore OK ($(stat -c%s "$jks") bytes), alias '$KEY_ALIAS' abre con ambas passwords."
 
           # key.properties lo lee el rootProject (mobile/android); storeFile se
           # resuelve relativo a mobile/android/app.
