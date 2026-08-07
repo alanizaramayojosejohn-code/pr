@@ -114,17 +114,41 @@ jobs:
         run: |
           jks=mobile/android/app/pr-release.jks
 
-          # Tolerante a saltos de línea, CRLF y espacios del copiado del secret.
-          if ! printf '%s' "$KEYSTORE_B64" | tr -d '[:space:]' | base64 -d > "$jks" 2>/dev/null; then
-            echo "::error::ANDROID_KEYSTORE_BASE64 no es base64 válido."
-            if printf '%s' "$KEYSTORE_B64" | grep -q 'BEGIN'; then
-              echo "El secret parece traer encabezados tipo '-----BEGIN...-----'." \
-                   "Eso pasa con 'certutil -encode'."
-            fi
-            echo "Regeneralo en PowerShell, parado donde está la keystore:"
-            echo '  [Convert]::ToBase64String([IO.File]::ReadAllBytes("pr-release.jks")) | Set-Clipboard'
-            exit 1
+          # Normalizo lo que suele romper un secret pegado a mano: espacios y
+          # CRLF, alfabeto base64url (-_ en vez de +/), y padding faltante.
+          clean=$(printf '%s' "$KEYSTORE_B64" | tr -d '[:space:]' | tr -- '-_' '+/')
+          clean=${clean%%=*}
+          case $(( ${#clean} % 4 )) in
+            2) clean="$clean==" ;;
+            3) clean="$clean=" ;;
+          esac
+
+          invalid=$(printf '%s' "$clean" | tr -d 'A-Za-z0-9+/=' | wc -c)
+          echo "Secret: ${#clean} caracteres tras normalizar, $invalid fuera del alfabeto base64."
+
+          if ! printf '%s' "$clean" | base64 -d > "$jks" 2>/dev/null; then
+            echo "Decodificado estricto falló; reintento ignorando caracteres sueltos."
+            printf '%s' "$clean" | base64 -di > "$jks" 2>/dev/null || true
           fi
+
+          # Una keystore JKS arranca con 0xFEEDFEED; una PKCS12, con una
+          # SEQUENCE DER (0x3082). Si no es ninguna, lo que hay en el secret
+          # no es el archivo que esperamos.
+          magic=$(head -c 4 "$jks" 2>/dev/null | od -An -tx1 | tr -d ' \n')
+          echo "Decodificado: $(stat -c%s "$jks" 2>/dev/null || echo 0) bytes, empieza con 0x${magic:-vacío}"
+          case "$magic" in
+            feedfeed*|3082*) ;;
+            *)
+              echo "::error::ANDROID_KEYSTORE_BASE64 no contiene una keystore."
+              if printf '%s' "$KEYSTORE_B64" | grep -q 'BEGIN'; then
+                echo "Trae encabezados '-----BEGIN...-----' — eso lo genera 'certutil -encode'."
+              fi
+              echo "Regeneralo en PowerShell, parado en la carpeta de la keystore:"
+              echo '  [Convert]::ToBase64String([IO.File]::ReadAllBytes("pr-release.jks")) | Set-Clipboard'
+              echo "y pegá el contenido del portapapeles como valor del secret, sin comillas."
+              exit 1
+              ;;
+          esac
 
           # Que sea una keystore de verdad, y que la password y el alias abran.
           # Sin esto el error aparecería recién dentro de Gradle, minutos después.
