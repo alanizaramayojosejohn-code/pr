@@ -54,7 +54,39 @@ firebase deploy --only storage
 
 ---
 
-## Publicar una nueva versión
+## Publicar una nueva versión — desde CI (recomendado)
+
+No necesita Flutter ni la keystore en tu máquina: firma en GitHub Actions.
+
+### Cargar los secrets (una sola vez)
+
+En **Settings › Secrets and variables › Actions** del repo:
+
+| Secret | Valor |
+|---|---|
+| `ANDROID_KEYSTORE_BASE64` | salida de `base64 -w0 pr-release.jks` (en PowerShell: `[Convert]::ToBase64String([IO.File]::ReadAllBytes("pr-release.jks"))`) |
+| `ANDROID_KEYSTORE_PASSWORD` | `storePassword` de la keystore |
+| `ANDROID_KEY_ALIAS` | alias de la key (ej. `pr`) |
+| `ANDROID_KEY_PASSWORD` | password de la key |
+
+`FIREBASE_SERVICE_ACCOUNT_PR_APP_EFA2F` ya está cargado; lo usa el deploy.
+
+### Cada release
+
+1. Bumpea `version` en `mobile/pubspec.yaml` (ej. `1.2.0+3`) y commitea a `main`.
+2. Actions › **Release APK** › *Run workflow*, y completa las notas.
+
+El workflow compila el APK firmado, **verifica que la firma coincida con la
+keystore**, publica el GitHub Release, reescribe `public/app-version.json`,
+lo commitea y redespliega hosting. Si el tag ya existe falla, salvo que
+marques `overwrite`.
+
+`min_supported_build` vacío mantiene el valor actual — subilo solo ante un
+cambio incompatible (ver la regla de oro al final).
+
+---
+
+## Publicar una nueva versión — desde Windows
 
 1. Incrementa `version` en `mobile/pubspec.yaml` (ej. `1.0.1+2`)
 2. Corre el script de release desde la raíz del proyecto:
