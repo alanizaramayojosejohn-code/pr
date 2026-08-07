@@ -16,40 +16,7 @@
       </RouterLink>
     </div>
 
-    <article v-if="todayRoutine" class="hero">
-      <header class="hero__top">
-        <span class="pill">
-          <span class="pill__dot"></span>
-          RUTINA DE HOY · {{ todayLabel.toUpperCase() }}
-        </span>
-      </header>
-      <div class="hero__title-block">
-        <h2 class="hero__title">{{ todayRoutine.name }}</h2>
-        <p class="hero__meta">
-          {{ todayRoutine.routine_exercises?.length ?? 0 }} ejercicios · {{ totalSets }} series
-        </p>
-      </div>
-      <button
-        class="hero__cta"
-        :disabled="starting || !(todayRoutine.routine_exercises?.length)"
-        @click="onStartToday"
-      >
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 4 20 12 6 20 6 4" fill="currentColor"/></svg>
-        {{ starting ? "Empezando…" : "Empezar rutina" }}
-      </button>
-    </article>
-
-    <div v-else-if="!isAdmin" class="hero hero--empty">
-      <span class="pill">HOY · {{ todayLabel.toUpperCase() }}</span>
-      <p class="hero__empty-text">
-        No tenés rutina asignada para hoy.
-      </p>
-      <RouterLink to="/rutinas" class="hero__cta hero__cta--outline">
-        Elegir una rutina
-      </RouterLink>
-    </div>
-
-    <section v-if="isAdmin" class="shortcuts">
+    <section class="shortcuts">
       <h3 class="shortcuts__title">Administración</h3>
       <div class="shortcuts__grid">
         <RouterLink to="/ejercicios" class="shortcut">
@@ -70,31 +37,12 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
-import { useRouter } from "vue-router";
+import { computed, onMounted } from "vue";
 import { useAuth } from "@/composables/useAuth";
 import { useUsers } from "@/composables/useUsers";
-import { useRoutines, dayLabel } from "@/composables/useRoutines";
-import { useWorkout } from "@/composables/useWorkout";
 
 const { profile, isAdmin } = useAuth();
 const { fetchUsers, expiringSoon, expiredBlocked } = useUsers();
-const { routines, fetchRoutines } = useRoutines();
-const { startFromRoutine } = useWorkout();
-const router = useRouter();
-const starting = ref(false);
-
-const todayDow = new Date().getDay();
-const todayLabel = computed(() => dayLabel(todayDow));
-const todayRoutine = computed(() =>
-  routines.value.find((r) => r.day_of_week === todayDow)
-);
-
-const totalSets = computed(() => {
-  const r = todayRoutine.value;
-  if (!r?.routine_exercises) return 0;
-  return r.routine_exercises.reduce((s, re) => s + (re.target_sets ?? 0), 0);
-});
 
 const firstName = computed(() => {
   const email = profile.value?.email ?? "";
@@ -110,17 +58,8 @@ const dateLabel = computed(() => {
 });
 
 onMounted(() => {
-  if (isAdmin.value) fetchUsers();
-  if (!isAdmin.value) fetchRoutines();
+  fetchUsers();
 });
-
-async function onStartToday() {
-  if (!todayRoutine.value) return;
-  starting.value = true;
-  const s = await startFromRoutine(todayRoutine.value.id);
-  starting.value = false;
-  if (s) router.push({ name: "entrenar", params: { sessionId: s.id } });
-}
 </script>
 
 <style scoped>
@@ -180,95 +119,6 @@ async function onStartToday() {
   background: var(--warning-glow);
   color: var(--warning);
   border: 1px solid #f59e0b66;
-}
-
-.hero {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  padding: 20px;
-  background: var(--surface-1);
-  border: 1px solid var(--brand-glow);
-  border-radius: var(--radius-xl);
-}
-.hero__top {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 5px 10px;
-  border-radius: var(--radius-pill);
-  background: var(--brand-glow);
-  color: var(--brand-300);
-  font-family: var(--font-body);
-  font-size: 10px;
-  font-weight: var(--weight-bold);
-  letter-spacing: 1px;
-}
-.pill__dot {
-  width: 6px;
-  height: 6px;
-  border-radius: var(--radius-pill);
-  background: var(--brand-400);
-}
-.hero__title-block {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-.hero__title {
-  margin: 0;
-  font-family: var(--font-display);
-  font-size: 22px;
-  font-weight: var(--weight-bold);
-  letter-spacing: -0.4px;
-  color: var(--text-primary);
-}
-.hero__meta {
-  margin: 0;
-  font-size: 13px;
-  color: var(--text-secondary);
-}
-.hero__cta {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  height: 52px;
-  border: none;
-  border-radius: var(--radius-pill);
-  background: var(--brand-500);
-  color: var(--surface-0);
-  font-family: var(--font-body);
-  font-size: 15px;
-  font-weight: var(--weight-bold);
-  cursor: pointer;
-  text-decoration: none;
-}
-.hero__cta svg {
-  width: 16px;
-  height: 16px;
-}
-.hero__cta:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-.hero__cta--outline {
-  background: transparent;
-  color: var(--brand-300);
-  border: 1px solid var(--brand-500);
-}
-.hero--empty {
-  border-color: var(--border-subtle);
-}
-.hero__empty-text {
-  margin: 0;
-  color: var(--text-secondary);
-  font-size: 14px;
 }
 
 .shortcuts {

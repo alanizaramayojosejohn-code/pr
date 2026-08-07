@@ -61,8 +61,8 @@ function openUncategorized() {
 }
 
 function goBack() {
-  if (isPicker.value) router.push({ name: "rutinas" });
-  else router.push({ name: "dashboard" });
+  // El modo picker se entraba desde /rutinas, que ya no existe en el panel web.
+  router.push({ name: "dashboard" });
 }
 
 async function onCreateCategory() {

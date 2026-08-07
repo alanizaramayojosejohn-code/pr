@@ -10,12 +10,15 @@
     "build-only": "vite build",
     "type-check": "vue-tsc --build",
     "generate-pwa-assets": "pwa-assets-generator --override",
-    "import-exercises": "node scripts/import-exercises.mjs"
+    "import-exercises": "node scripts/import-exercises.mjs",
+    "fix-tuteo": "node scripts/fix-descriptions-tuteo.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.3.1",
     "@capacitor/cli": "^8.3.1",
     "@capacitor/core": "^8.3.1",
+    "@capacitor/haptics": "^8.0.2",
+    "@capacitor/local-notifications": "^8.0.2",
     "@supabase/supabase-js": "^2.99.1",
     "dompurify": "^3.4.1",
     "markdown-it": "^14.1.1",
@@ -27,13 +30,11 @@
     "@types/dompurify": "^3.0.5",
     "@types/markdown-it": "^14.1.2",
     "@types/node": "^24.11.0",
-    "@vite-pwa/assets-generator": "^1.0.2",
     "@vitejs/plugin-vue": "^6.0.4",
     "@vue/tsconfig": "^0.8.1",
     "npm-run-all2": "^8.0.4",
     "typescript": "~5.9.3",
     "vite": "^7.3.1",
-    "vite-plugin-pwa": "^1.2.0",
     "vite-plugin-vue-devtools": "^8.1.0",
     "vue-tsc": "^3.2.5"
   },

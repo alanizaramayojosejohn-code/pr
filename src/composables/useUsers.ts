@@ -1,6 +1,12 @@
 import { computed, ref } from "vue";
 import { supabase } from "@/supabase";
-import type { Profile } from "./useAuth";
+import type { Profile, Role } from "./useAuth";
+
+export const ROLE_LABELS: Record<Role, string> = {
+  user: "Cliente",
+  instructor: "Instructor",
+  admin: "Administrador",
+};
 
 export function daysUntil(iso: string | null): number | null {
   if (!iso) return null;
@@ -25,6 +31,16 @@ export function useUsers() {
     users.value.filter((u) => u.role === "user" && u.status === "blocked")
   );
 
+  const instructors = computed(() =>
+    users.value.filter((u) => u.role === "instructor")
+  );
+
+  /** Email del instructor a cargo, para mostrarlo en la fila del cliente. */
+  function instructorEmail(u: Profile): string | null {
+    if (!u.instructor_id) return null;
+    return users.value.find((x) => x.id === u.instructor_id)?.email ?? "—";
+  }
+
   async function fetchUsers() {
     loading.value = true;
     error.value = null;
@@ -37,11 +53,21 @@ export function useUsers() {
     loading.value = false;
   }
 
-  async function createUser(email: string, password: string, role: "user" | "admin") {
+  async function createUser(
+    email: string,
+    password: string,
+    role: Role,
+    instructorId: string | null = null
+  ) {
     loading.value = true;
     error.value = null;
-    const { data, error: err } = await supabase.functions.invoke("admin-create-user", {
-      body: { email, password, role },
+    const { data, error: err } = await supabase.functions.invoke("create-user", {
+      body: {
+        email,
+        password,
+        role,
+        instructor_id: role === "user" ? instructorId : null,
+      },
     });
     loading.value = false;
     if (err) {
@@ -53,11 +79,29 @@ export function useUsers() {
     return true;
   }
 
-  async function updateRole(id: string, role: "user" | "admin") {
+  async function updateRole(id: string, role: Role) {
+    error.value = null;
+    // Solo los clientes cuelgan de un instructor: al ascender a instructor o
+    // admin hay que soltar ese vínculo o quedaría un instructor con jefe.
+    const patch: Partial<Profile> =
+      role === "user" ? { role } : { role, instructor_id: null };
+    const { error: err } = await supabase
+      .from("profiles")
+      .update(patch)
+      .eq("id", id);
+    if (err) {
+      error.value = err.message;
+      return false;
+    }
+    await fetchUsers();
+    return true;
+  }
+
+  async function assignInstructor(id: string, instructorId: string | null) {
     error.value = null;
     const { error: err } = await supabase
       .from("profiles")
-      .update({ role })
+      .update({ instructor_id: instructorId })
       .eq("id", id);
     if (err) {
       error.value = err.message;
@@ -109,9 +153,12 @@ export function useUsers() {
     error,
     expiringSoon,
     expiredBlocked,
+    instructors,
+    instructorEmail,
     fetchUsers,
     createUser,
     updateRole,
+    assignInstructor,
     updateStatus,
     renewUser,
   };

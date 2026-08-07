@@ -28,14 +28,17 @@
         :to="{ name: 'aprender-detalle', params: { slug: a.slug } }"
         class="acard"
       >
-        <div class="acard__cover" :style="a.cover ? `background-image:url(${a.cover})` : ''">
-          <span v-if="!a.cover" class="acard__cover-fallback">{{ initial(a.title) }}</span>
+        <div
+          class="acard__cover"
+          :class="{ 'acard__cover--empty': !a.cover }"
+          :style="a.cover ? `background-image:url(${a.cover})` : ''"
+        >
+          <span v-if="!a.cover" class="acard__cover-icon">📖</span>
         </div>
         <div class="acard__body">
-          <span class="acard__cat">{{ catName(a.category) }}</span>
           <h2 class="acard__title">{{ a.title }}</h2>
           <p class="acard__excerpt">{{ a.excerpt }}</p>
-          <p class="acard__meta">{{ formatDate(a.published) }} · {{ a.readingMinutes }} min</p>
+          <p class="acard__meta">{{ formatDate(a.published) }} · {{ a.readingMinutes }} min lectura</p>
         </div>
       </RouterLink>
     </div>
@@ -45,14 +48,7 @@
 <script setup lang="ts">
 import { useArticles } from "@/composables/useArticles";
 
-const { articles, categories, articlesByCategory, findCategory, formatDate } = useArticles();
-
-function catName(slug: string): string {
-  return findCategory(slug)?.name ?? slug;
-}
-function initial(title: string): string {
-  return title.charAt(0).toUpperCase();
-}
+const { articles, categories, articlesByCategory, formatDate } = useArticles();
 </script>
 
 <style scoped>
@@ -134,76 +130,72 @@ function initial(title: string): string {
 .learn__list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
 }
+
+/* ── Card ── */
 .acard {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 96px 1fr;
   background: var(--surface-1);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
   text-decoration: none;
   color: inherit;
   overflow: hidden;
-  transition: border-color 120ms ease, transform 120ms ease;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
 }
 .acard:hover {
   border-color: var(--border-default);
-  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
 }
+
+/* ── Cover (left column) ── */
 .acard__cover {
-  height: 140px;
-  background: linear-gradient(135deg, var(--surface-2), var(--surface-3));
+  background: var(--surface-2);
   background-size: cover;
   background-position: center;
+  min-height: 110px;
   display: grid;
   place-items: center;
-  color: var(--brand-400);
 }
-.acard__cover-fallback {
-  font-family: var(--font-display);
-  font-size: 56px;
-  font-weight: var(--weight-bold);
-  opacity: 0.35;
+.acard__cover--empty {
+  background: linear-gradient(145deg, var(--surface-2), var(--surface-3));
 }
+.acard__cover-icon {
+  font-size: 28px;
+  opacity: 0.5;
+}
+
+/* ── Body (right column) ── */
 .acard__body {
-  padding: 14px 16px 16px;
+  padding: 14px 16px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
-}
-.acard__cat {
-  align-self: flex-start;
-  padding: 3px 9px;
-  border-radius: var(--radius-pill);
-  background: var(--brand-glow);
-  color: var(--brand-300);
-  font-size: 9px;
-  font-weight: var(--weight-bold);
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
+  gap: 5px;
+  justify-content: center;
 }
 .acard__title {
-  margin: 2px 0 0;
+  margin: 0;
   font-family: var(--font-body);
-  font-size: 17px;
+  font-size: 15px;
   font-weight: var(--weight-bold);
   color: var(--text-primary);
   letter-spacing: -0.2px;
-  line-height: 1.25;
+  line-height: 1.3;
 }
 .acard__excerpt {
   margin: 0;
-  font-size: 13px;
+  font-size: 12px;
   color: var(--text-secondary);
-  line-height: 1.45;
+  line-height: 1.5;
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
 .acard__meta {
-  margin: 4px 0 0;
+  margin: 2px 0 0;
   font-size: 11px;
   color: var(--text-tertiary);
   font-weight: var(--weight-medium);

@@ -15,65 +15,108 @@ const supabaseKey = import.meta.env.VITE_SUPABASE_KEY;
 export const supabase = createClient(supabaseUrl, supabaseKey);
 ```
 
+## Roles
+
+| Rol          | Dónde trabaja      | Puede                                                                 |
+|--------------|--------------------|-----------------------------------------------------------------------|
+| `user`       | App Android        | Entrenar, sus rutinas, su progreso                                     |
+| `instructor` | App Android        | Todo lo de `user` + dar de alta clientes suyos, mantener plantillas, enviárselas y leer su actividad |
+| `admin`      | Panel PWA          | Catálogo de ejercicios, alta de cualquier cuenta, vencimientos, asignar instructor a un cliente |
+
+El panel PWA es solo para `admin`: `useAuth.ts` cierra la sesión de cualquier
+otro rol. Los instructores gestionan a sus alumnos desde la app.
+
+Un cliente cuelga de su instructor por `profiles.instructor_id`. Todo el
+control de acceso del instructor pasa por `is_my_client()`, así que ampliar su
+alcance a otra tabla es agregar una política con esa misma condición.
+
 ## Tablas de dominio
 
 Todas con RLS habilitada. Convención de políticas:
 
 - El dueño (`user_id = auth.uid()`) puede `SELECT/INSERT/UPDATE/DELETE` sus propias filas.
 - Admin tiene `*_admin_select` (solo lectura) sobre tablas de datos de usuario.
+- El instructor tiene `instructor_*` sobre las filas de sus alumnos: escritura en
+  `routines` y `routine_exercises`, solo lectura en `workout_sessions`,
+  `exercise_logs`, `body_measurements` y `profiles`.
 - `Exercise` es catálogo global: lectura para todos los autenticados, escritura solo admin.
 
 ### `profiles`
 
 Perfil extendido del usuario. PK = `id` (referencia a `auth.users.id`).
 
-| Campo         | Tipo                      | Notas                                                   |
-|---------------|---------------------------|---------------------------------------------------------|
-| `id`          | uuid                      | PK; FK a `auth.users(id)`                              |
-| `email`       | text                      | Denormalizado                                          |
-| `role`        | text (`user`\|`admin`)    | Default `user`                                         |
-| `status`      | text (`approved`\|`blocked`) | Sin estado `pending` — las cuentas nacen aprobadas   |
-| `expires_at`  | timestamptz (null)        | Null para admins; para `user` suele ser now() + 30d     |
-| `created_at`  | timestamptz               |                                                         |
+| Campo           | Tipo                                    | Notas                                                 |
+|-----------------|-----------------------------------------|-------------------------------------------------------|
+| `id`            | uuid                                    | PK; FK a `auth.users(id)`                             |
+| `email`         | text                                    | Denormalizado                                         |
+| `role`          | text (`user`\|`instructor`\|`admin`)    | Default `user`; con CHECK                             |
+| `status`        | text (`approved`\|`blocked`)            | Sin estado `pending` — las cuentas nacen aprobadas     |
+| `expires_at`    | timestamptz (null)                      | Null para admins e instructores; para `user`, now() + 30d |
+| `instructor_id` | uuid (null)                             | FK a `profiles(id)`. Solo lo llevan los clientes       |
+| `created_at`    | timestamptz                             |                                                       |
 
 ### `Exercise`
 
 Catálogo global gestionado por admin.
 
-| Campo         | Tipo      | Notas                                |
-|---------------|-----------|--------------------------------------|
-| `id`          | bigint    | PK                                   |
-| `name`        | text      |                                      |
-| `description` | text      |                                      |
-| `image_url`   | text      | Bucket `exercise-images`             |
-| `video_url`   | text      | Bucket `exercise-videos`             |
-| `rest_seconds`| integer   | Default 60                           |
-| `created_at`  | timestamptz |                                    |
+| Campo         | Tipo        | Notas                                     |
+|---------------|-------------|-------------------------------------------|
+| `id`          | bigint      | PK                                        |
+| `name`        | varchar     |                                           |
+| `description` | text        | Instrucciones separadas por línea en blanco |
+| `image_url`   | text        | Bucket `exercise-images`                  |
+| `image_url_2` | text        | Segunda pose                              |
+| `video_url`   | text        | Bucket `exercise-videos`                  |
+| `rest_seconds`| integer     | Default 60                                |
+| `category_id` | uuid        | FK a `exercise_categories`                |
+| `equipment`   | text        |                                           |
+| `mechanic`    | text        |                                           |
+| `level`       | text        |                                           |
+| `source_id`   | text        | Clave estable del importador (idempotencia) |
+| `created_at`  | timestamptz |                                           |
+
+### `exercise_categories`
+
+| Campo        | Tipo        | Notas                          |
+|--------------|-------------|--------------------------------|
+| `id`         | uuid        | PK                             |
+| `name`       | text        |                                |
+| `slug`       | text        | Usado por los filtros de la app |
+| `sort_order` | integer     | Default 0                      |
+| `created_at` | timestamptz |                                |
 
 ### `routines`
 
-| Campo         | Tipo              | Notas                                  |
-|---------------|-------------------|----------------------------------------|
-| `id`          | uuid              | PK (default `gen_random_uuid()`)       |
-| `user_id`     | uuid              | FK a `auth.users`                      |
-| `name`        | text              |                                        |
-| `day_of_week` | integer (0-6,null)| 0=domingo … 6=sábado; null = sin día   |
-| `notes`       | text              |                                        |
-| `created_at`  | timestamptz       |                                        |
+| Campo                | Tipo           | Notas                                                        |
+|----------------------|----------------|--------------------------------------------------------------|
+| `id`                 | uuid           | PK (default `gen_random_uuid()`)                             |
+| `user_id`            | uuid           | FK a `auth.users`                                            |
+| `name`               | text           |                                                              |
+| `days_of_week`       | integer[]      | 0=domingo … 6=sábado; array vacío = sin día                  |
+| `notes`              | text           |                                                              |
+| `is_template`        | boolean        | Default false. true = plantilla del instructor, no se entrena |
+| `source_template_id` | uuid (null)    | FK a `routines`. Plantilla de la que salió esta copia         |
+| `assigned_by`        | uuid (null)    | FK a `profiles`. Instructor que la envió                      |
+| `created_at`         | timestamptz    |                                                              |
+
+> El panel PWA todavía consulta `day_of_week` (singular), columna que ya no
+> existe: su pantalla de rutinas quedó obsoleta con el rewrite Flutter y hoy no
+> está ruteada.
 
 ### `routine_exercises`
 
 Tabla puente ordenada.
 
-| Campo          | Tipo          | Notas                             |
-|----------------|---------------|-----------------------------------|
-| `id`           | uuid          | PK                                |
-| `routine_id`   | uuid          | FK a `routines`                   |
-| `exercise_id`  | bigint        | FK a `Exercise`                   |
-| `position`     | integer       | Orden dentro de la rutina (0..N)  |
-| `target_sets`  | integer       |                                   |
-| `target_reps`  | integer       |                                   |
-| `rest_seconds` | integer       |                                   |
+| Campo            | Tipo          | Notas                             |
+|------------------|---------------|-----------------------------------|
+| `id`             | uuid          | PK                                |
+| `routine_id`     | uuid          | FK a `routines`                   |
+| `exercise_id`    | bigint        | FK a `Exercise`                   |
+| `position`       | integer       | Orden dentro de la rutina         |
+| `target_sets`    | integer       |                                   |
+| `target_reps`    | integer       |                                   |
+| `rest_seconds`   | integer       |                                   |
+| `default_weight` | numeric (null)| Peso sugerido por el instructor   |
 
 ### `workout_sessions`
 
@@ -125,18 +168,45 @@ Cada serie registrada dentro de una sesión.
 
 Scaffold heredado (candidato a borrar). No forma parte del producto.
 
+## Funciones SQL
+
+Fuente: `supabase/migrations/20260801120000_instructor_role.sql`.
+
+| Función                                     | Qué hace                                                                 |
+|---------------------------------------------|--------------------------------------------------------------------------|
+| `is_admin()`                                | Preexistente; la usan las políticas de admin                              |
+| `is_instructor()`                           | true si quien llama es instructor aprobado                                |
+| `is_my_client(uuid)`                        | true si ese perfil es alumno de quien llama                               |
+| `assign_routine_template(template, client)` | Copia una plantilla a la cuenta del alumno y devuelve el id de la copia   |
+
+`assign_routine_template` es `SECURITY DEFINER` y comprueba la autorización
+adentro. Existe para que copiar rutina + ejercicios sea atómico: hacerlo con
+inserts sueltos desde el cliente dejaría media rutina si falla uno. Reenviar la
+misma plantilla **reescribe** la copia del alumno en vez de duplicarla.
+
 ## Edge Functions
 
-### `admin-create-user`
+### `create-user`
 
-Crea un usuario nuevo. Validación:
+Alta de cuentas. Fuente en `supabase/functions/create-user/index.ts`.
 
-1. El caller debe tener JWT válido y `profiles.role = 'admin'`.
-2. Usa `service_role` internamente para:
-   - `supabase.auth.admin.createUser({ email, password, email_confirm: true })`.
-   - `INSERT` en `profiles` con `role`, `status = 'approved'` y `expires_at`.
+1. El caller debe tener JWT válido y `profiles.role` en (`admin`, `instructor`),
+   con `status = 'approved'`. El rol se lee de la base, nunca del body.
+2. Admin: crea `user`, `instructor` o `admin`, y puede pasar `instructor_id`
+   para un cliente.
+3. Instructor: el rol se fuerza a `user` y `instructor_id` a su propio id.
+4. Usa `service_role` para `auth.admin.createUser({ email_confirm: true })` y
+   luego `upsert` en `profiles`. Si el perfil falla, borra la cuenta recién
+   creada para no dejarla huérfana.
 
-Llamada desde `useUsers.ts`.
+Llamada desde `useUsers.ts` (panel) e `instructor_repository.dart` (app).
+
+Desplegar: `npx supabase functions deploy create-user --project-ref zpexmkwbmnczeoikbnao`
+
+### `admin-create-user` (heredada)
+
+Versión anterior, solo admin. Su código nunca estuvo en el repo. Quedó
+desplegada pero ya no la llama nadie; se puede borrar del proyecto Supabase.
 
 ## Jobs programados (pg_cron)
 

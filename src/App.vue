@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { useAuth } from "@/composables/useAuth";
 
-const { ready, isLoggedIn, isAdmin, profile } = useAuth();
+// Todo el que llega a tener sesión aquí es admin (useAuth desloguea al resto),
+// así que el badge de rol en el avatar ya no distingue nada.
+const { ready, isLoggedIn, profile } = useAuth();
 
 function initials(email: string | null | undefined): string {
   if (!email) return "?";
@@ -20,7 +22,6 @@ function initials(email: string | null | undefined): string {
       </div>
       <RouterLink to="/cuenta" class="app__avatar" :title="profile?.email ?? ''">
         <span>{{ initials(profile?.email) }}</span>
-        <span v-if="isAdmin" class="app__avatar-badge" title="admin">A</span>
       </RouterLink>
     </header>
 
@@ -34,25 +35,13 @@ function initials(email: string | null | undefined): string {
           <svg class="tabbar__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5L12 3l9 6.5V21a0 0 0 0 1 0 0h-5v-6h-4v6H3a0 0 0 0 1 0 0z"/></svg>
           <span class="tabbar__label">HOY</span>
         </RouterLink>
-        <RouterLink to="/rutinas" class="tabbar__tab" active-class="tabbar__tab--active">
-          <svg class="tabbar__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h13M3 12h13M3 18h13"/><path d="m19 5 2 2-2 2M19 11l2 2-2 2M19 17l2 2-2 2"/></svg>
-          <span class="tabbar__label">RUTINAS</span>
+        <RouterLink to="/ejercicios" class="tabbar__tab" active-class="tabbar__tab--active">
+          <svg class="tabbar__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4v16M18 4v16M3 8h3M3 16h3M18 8h3M18 16h3M6 12h12"/></svg>
+          <span class="tabbar__label">EJERCICIOS</span>
         </RouterLink>
-        <RouterLink to="/aprender" class="tabbar__tab" active-class="tabbar__tab--active">
-          <svg class="tabbar__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
-          <span class="tabbar__label">APRENDER</span>
-        </RouterLink>
-        <RouterLink to="/medidas" class="tabbar__tab" active-class="tabbar__tab--active">
-          <svg class="tabbar__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="10" rx="2"/><path d="M7 7v3M11 7v4M15 7v3M19 7v4"/></svg>
-          <span class="tabbar__label">MEDIDAS</span>
-        </RouterLink>
-        <RouterLink to="/progreso" class="tabbar__tab" active-class="tabbar__tab--active">
-          <svg class="tabbar__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 17 6-6 4 4 8-8"/><path d="M17 7h4v4"/></svg>
-          <span class="tabbar__label">PROGRESO</span>
-        </RouterLink>
-        <RouterLink to="/historial" class="tabbar__tab" active-class="tabbar__tab--active">
-          <svg class="tabbar__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3 2"/></svg>
-          <span class="tabbar__label">HISTORIAL</span>
+        <RouterLink to="/usuarios" class="tabbar__tab" active-class="tabbar__tab--active">
+          <svg class="tabbar__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <span class="tabbar__label">USUARIOS</span>
         </RouterLink>
       </div>
     </nav>
@@ -113,21 +102,6 @@ function initials(email: string | null | undefined): string {
   font-weight: var(--weight-semibold);
   font-size: 14px;
 }
-.app__avatar-badge {
-  position: absolute;
-  top: -4px;
-  right: -4px;
-  width: 16px;
-  height: 16px;
-  border-radius: var(--radius-pill);
-  background: var(--brand-500);
-  color: var(--surface-0);
-  font-size: 9px;
-  font-weight: var(--weight-bold);
-  display: grid;
-  place-items: center;
-}
-
 .app__main {
   padding: 16px 0;
 }
@@ -148,7 +122,7 @@ function initials(email: string | null | undefined): string {
 .tabbar__pill {
   pointer-events: auto;
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 0;
   height: 62px;
   padding: 4px;
@@ -183,5 +157,11 @@ function initials(email: string | null | undefined): string {
 }
 .tabbar__tab--active .tabbar__label {
   font-weight: var(--weight-bold);
+}
+
+@media (max-width: 360px) {
+  .tabbar__label { display: none; }
+  .tabbar__icon { width: 22px; height: 22px; }
+  .tabbar__tab { border-radius: 22px; }
 }
 </style>

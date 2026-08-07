@@ -2,7 +2,7 @@
 title: "¿Cuánta proteína necesitás por día?"
 category: nutricion
 excerpt: "El número justo según tu peso y objetivo, sin mitos ni suplementos innecesarios."
-cover: ""
+cover: "articulo2.jpeg"
 published: 2026-04-26
 author: "PR Team"
 ---

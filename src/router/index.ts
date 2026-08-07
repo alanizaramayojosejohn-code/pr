@@ -6,11 +6,13 @@ const router = createRouter({
   routes: [
     {
       path: "/",
-      redirect: "/dashboard",
+      name: "landing",
+      component: () => import("@/ui/public/pages/MyLanding.vue"),
     },
     {
-      path: "/login",
+      path: "/admin",
       name: "login",
+      alias: "/login",
       component: () => import("@/ui/public/pages/MyLogin.vue"),
       meta: { onlyGuest: true },
     },
@@ -18,54 +20,6 @@ const router = createRouter({
       path: "/dashboard",
       name: "dashboard",
       component: () => import("@/ui/admin/pages/MyHome.vue"),
-      meta: { requiresAuth: true },
-    },
-    {
-      path: "/rutinas",
-      name: "rutinas",
-      component: () => import("@/ui/admin/pages/MyRoutines.vue"),
-      meta: { requiresAuth: true },
-    },
-    {
-      path: "/medidas",
-      name: "medidas",
-      component: () => import("@/ui/admin/pages/MyMeasurements.vue"),
-      meta: { requiresAuth: true },
-    },
-    {
-      path: "/entrenar/:sessionId",
-      name: "entrenar",
-      component: () => import("@/ui/admin/pages/MyWorkout.vue"),
-      meta: { requiresAuth: true },
-    },
-    {
-      path: "/progreso",
-      name: "progreso",
-      component: () => import("@/ui/admin/pages/MyProgress.vue"),
-      meta: { requiresAuth: true },
-    },
-    {
-      path: "/historial",
-      name: "historial",
-      component: () => import("@/ui/admin/pages/MyHistory.vue"),
-      meta: { requiresAuth: true },
-    },
-    {
-      path: "/aprender",
-      name: "aprender",
-      component: () => import("@/ui/admin/pages/MyLearn.vue"),
-      meta: { requiresAuth: true },
-    },
-    {
-      path: "/aprender/categoria/:slug",
-      name: "aprender-categoria",
-      component: () => import("@/ui/admin/pages/MyLearnCategory.vue"),
-      meta: { requiresAuth: true },
-    },
-    {
-      path: "/aprender/:slug",
-      name: "aprender-detalle",
-      component: () => import("@/ui/admin/pages/MyArticle.vue"),
       meta: { requiresAuth: true },
     },
     {
@@ -84,7 +38,7 @@ const router = createRouter({
       path: "/ejercicio/:id/edit",
       name: "exercise-edit",
       component: () => import("@/ui/admin/pages/MyExerciseEdit.vue"),
-      meta: { requiresAuth: true, requiresAdmin: true },
+      meta: { requiresAuth: true },
     },
     {
       path: "/ejercicio/:id",
@@ -96,7 +50,7 @@ const router = createRouter({
       path: "/usuarios",
       name: "usuarios",
       component: () => import("@/ui/admin/pages/MyUsers.vue"),
-      meta: { requiresAuth: true, requiresAdmin: true },
+      meta: { requiresAuth: true },
     },
     {
       path: "/cuenta",
@@ -106,7 +60,7 @@ const router = createRouter({
     },
     {
       path: "/:pathMatch(.*)*",
-      redirect: "/dashboard",
+      redirect: "/",
     },
   ],
 });
@@ -115,14 +69,15 @@ router.beforeEach(async (to) => {
   const { initPromise, isLoggedIn, isAdmin } = useAuth();
   await initPromise;
 
-  if (to.meta.onlyGuest && isLoggedIn.value) {
+  // Un único criterio para ambas ramas. Si `onlyGuest` mirara solo isLoggedIn,
+  // una sesión sin rol admin rebotaría /admin → /dashboard → /admin sin fin.
+  const authorized = isLoggedIn.value && isAdmin.value;
+
+  if (to.meta.onlyGuest && authorized) {
     return { name: "dashboard" };
   }
-  if (to.meta.requiresAuth && !isLoggedIn.value) {
-    return { name: "login", query: { redirect: to.fullPath } };
-  }
-  if (to.meta.requiresAdmin && !isAdmin.value) {
-    return { name: "dashboard" };
+  if (to.meta.requiresAuth && !authorized) {
+    return { path: "/admin", query: { redirect: to.fullPath } };
   }
 });
 

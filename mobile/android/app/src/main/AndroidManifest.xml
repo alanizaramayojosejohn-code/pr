@@ -1,0 +1,92 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Required for all foreground services (Android 9+) -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <!-- Foreground service type permission (Android 14+) -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_HEALTH" />
+    <!--
+      Android 14+ rejects a `health` foreground service unless the app also holds
+      one of BODY_SENSORS / ACTIVITY_RECOGNITION / HIGH_SAMPLING_RATE_SENSORS.
+      HIGH_SAMPLING_RATE_SENSORS is install-time (no runtime dialog), so it is the
+      cheapest way to satisfy the prerequisite. Without it startForeground() throws
+      SecurityException and the timer notification never appears.
+    -->
+    <uses-permission android:name="android.permission.HIGH_SAMPLING_RATE_SENSORS" />
+    <!-- Runtime notification permission (Android 13+) -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Wake lock to keep timer running while screen is off -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <!-- Required for the rest-finished alert's vibration pattern -->
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <!-- Lets the user exempt the timer service from battery optimization -->
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+    <!-- Required since Android 8 to install APKs from unknown sources -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+
+    <application
+        android:label="PR"
+        android:name="${applicationName}"
+        android:icon="@mipmap/ic_launcher">
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:launchMode="singleTop"
+            android:taskAffinity=""
+            android:theme="@style/LaunchTheme"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
+            android:hardwareAccelerated="true"
+            android:windowSoftInputMode="adjustResize">
+            <meta-data
+              android:name="io.flutter.embedding.android.NormalTheme"
+              android:resource="@style/NormalTheme"
+              />
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+            <!-- Deep link for Google OAuth callback -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="com.alanizjose.pr" android:host="callback" />
+            </intent-filter>
+        </activity>
+
+        <!-- Foreground service for workout timer (do not change service name) -->
+        <service
+            android:name="com.pravera.flutter_foreground_task.service.ForegroundService"
+            android:foregroundServiceType="health"
+            android:exported="false"
+            android:stopWithTask="false" />
+
+        <!-- Monochrome small icon for the timer notification. A colour launcher
+             icon renders as a grey blob in the status bar. -->
+        <meta-data
+            android:name="com.alanizjose.pr.NOTIFICATION_ICON"
+            android:resource="@drawable/ic_stat_workout" />
+
+        <meta-data
+            android:name="flutterEmbedding"
+            android:value="2" />
+
+        <!-- FileProvider for open_filex APK installs -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+    </application>
+
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.PROCESS_TEXT"/>
+            <data android:mimeType="text/plain"/>
+        </intent>
+    </queries>
+</manifest>

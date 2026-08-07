@@ -2,7 +2,7 @@
 title: "Descansar bien importa más de lo que pensás"
 category: recuperacion
 excerpt: "Dormir mal anula la mitad de tu progreso. Por qué pasa y cómo arreglarlo en 7 días."
-cover: ""
+cover: "articulo3.jpeg"
 published: 2026-04-27
 author: "PR Team"
 ---
