@@ -212,12 +212,17 @@ jobs:
             echo "::warning::apksigner no encontrado en el runner; salteo la verificación de firma."
             exit 0
           fi
+          # Extraigo el hex de la línea, sin depender de cuántos campos la
+          # preceden: keytool lo da como 32 bytes separados por ':' y apksigner
+          # como 64 caracteres corridos, y ambos formatos cambian entre versiones.
+          hex() { grep -oiE '([0-9a-f]{2}:){31}[0-9a-f]{2}|[0-9a-f]{64}' | head -1 | tr -d ':' | tr 'A-Z' 'a-z'; }
+
           expected=$(keytool -list -v -keystore android/app/pr-release.jks \
             -alias "$KEY_ALIAS" -storepass "$STORE_PASSWORD" 2>/dev/null \
-            | awk '/SHA256:/ {print $2; exit}' | tr -d ':' | tr 'A-Z' 'a-z')
+            | grep -m1 'SHA256:' | hex)
           actual=$("$apksigner" verify --print-certs \
             build/app/outputs/flutter-apk/app-release.apk \
-            | awk -F': ' '/SHA-256 digest:/ {print $2; exit}' | tr -d ':' | tr 'A-Z' 'a-z')
+            | grep -m1 -i 'SHA-256 digest' | hex)
           echo "keystore: $expected"
           echo "apk     : $actual"
           if [ -z "$expected" ] || [ -z "$actual" ] || [ "$expected" != "$actual" ]; then
