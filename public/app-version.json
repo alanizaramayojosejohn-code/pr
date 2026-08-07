@@ -1,10 +1,10 @@
-﻿{
-    "latest_version":  "1.1.0",
-    "latest_build":  2,
-    "min_supported_build":  1,
-    "apk_url":  "https://github.com/alanizaramayojosejohn-code/pr/releases/download/v1.1.0/pr-1.1.0.apk",
-    "apk_size_mb":  82.3,
-    "sha256":  "1212e6fc869374a4b9d25f7a1f8d45c137e6611944401200fa20a2176619c884",
-    "release_notes_es":  "• Entrenamiento activo: detección de PRs\n• Notificación con cronómetro y botones\n• Dashboard y progreso mejorados",
-    "released_at":  "2026-06-04"
+{
+  "latest_version": "1.2.0",
+  "latest_build": 3,
+  "min_supported_build": 1,
+  "apk_url": "https://github.com/alanizaramayojosejohn-code/pr/releases/download/v1.2.0/pr-1.2.0.apk",
+  "apk_size_mb": 84.2,
+  "sha256": "c87139b34984671c75b7f9f3d99cb2d810bf514952147a1a4a751c605d6b1bdd",
+  "release_notes_es": "• Rol de instructor: vinculá alumnos y mandales rutinas\n• Editar rutinas desde la vista de rutina y durante el entreno\n• Cambio de tema claro/oscuro desde el header\n• Fix: el cronómetro ya no se detenía en segundo plano",
+  "released_at": "2026-08-07"
 }
